@@ -1,28 +1,30 @@
 // dot class (defines particles and their methods)
 // common functions
-
-function getDistance(x1: number, y1: number, x2: number, y2: number): number {
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+function getDistance(x1, y1, x2, y2) {
     return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
-
-function getRandomInt(min: number, max: number): number {
+function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
-
-function getRandomArbitrary(min: number, max: number): number {
+function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
 }
-
-function hexToRgb(hex: string, opacity: number): string {
+function hexToRgb(hex, opacity) {
     hex = hex.replace("#", "");
     const r = parseInt(hex.substring(0, hex.length / 3), 16);
     const g = parseInt(hex.substring(hex.length / 3, 2 * hex.length / 3), 16);
     const b = parseInt(hex.substring(2 * hex.length / 3, 3 * hex.length / 3), 16);
     return "rgba(" + r + "," + g + "," + b + "," + opacity + ")";
 }
-
-function drawCircle(ctx: CanvasRenderingContext2D,
-                    x: number, y: number, r: number, colorS: string | null, colorF: string | null): void {
+function drawCircle(ctx, x, y, r, colorS, colorF) {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2, true);
     if (colorF !== null) {
@@ -34,58 +36,18 @@ function drawCircle(ctx: CanvasRenderingContext2D,
         ctx.stroke();
     }
 }
-
-
-
-interface IPositionObject {
-    x: number;
-    y: number;
-}
-
-interface IAnimationObject {
-    start(): void;
-    stop(): void;
-}
-
-interface IMovableObject {
-    move(): void;
-    moveTo(position: IPositionObject): void;
-}
-
-interface IAnimationControlFactory {
-    new (canvas: HTMLCanvasElement, options: IAnimationOptions): IAnimationControl;
-}
-
-interface IAnimationControl {
-    init(): void;
-    draw(mousePosition?: IPositionObject, isMouseClicked?: boolean): void;
-}
-
-
-
-interface IDotProps {
-    x: number;
-    y: number;
-    r: number;
-    xSpeed: number;
-    ySpeed: number;
-    colorS: string | null;
-    colorF: string | null;
-}
-
-class Dot implements IMovableObject {
-
-    constructor (private _canvas: HTMLCanvasElement,
-                 private _x: number, 
-                 private _y: number,
-                 private _xSpeed: number, 
-                 private _ySpeed: number,
-                 private _r: number,
-                 private _colorS: string | null, 
-                 private _colorF: string | null) {
+class Dot {
+    constructor(_canvas, _x, _y, _xSpeed, _ySpeed, _r, _colorS, _colorF) {
+        this._canvas = _canvas;
+        this._x = _x;
+        this._y = _y;
+        this._xSpeed = _xSpeed;
+        this._ySpeed = _ySpeed;
+        this._r = _r;
+        this._colorS = _colorS;
+        this._colorF = _colorF;
     }
-
-    getProps(): IDotProps {
+    getProps() {
         return {
             x: this._x,
             y: this._y,
@@ -96,62 +58,59 @@ class Dot implements IMovableObject {
             colorF: this._colorF
         };
     }
-
-    move(): void {
+    move() {
         if (this._x < -1 * this._r) {
             this._x = this._canvas.width + this._r;
-        } else if (this._x > this._canvas.width + this._r) {
+        }
+        else if (this._x > this._canvas.width + this._r) {
             this._x = -1 * this._r;
-        } else {
+        }
+        else {
             this._x += this._xSpeed;
         }
-
         if (this._y < -1 * this._r) {
             this._y = this._canvas.height + this._r;
-        } else if (this._y > this._canvas.height + this._r) {
+        }
+        else if (this._y > this._canvas.height + this._r) {
             this._y = -1 * this._r;
-        } else {
+        }
+        else {
             this._y += this._ySpeed;
         }
     }
-
-    moveTo(position: IPositionObject): void {
+    moveTo(position) {
         this._x = position.x;
         this._y = position.y;
     }
 }
-
-class DotControl implements  IAnimationControl {
-
-    private _array: Dot[] = [];
-    private _maxNumber = 100;
-    private readonly _canvas: HTMLCanvasElement;
-    private readonly _canvasCtx: CanvasRenderingContext2D;
-    private readonly _options: IAnimationOptions;
-
-    constructor (canvas: HTMLCanvasElement, options: IAnimationOptions) {
+class DotControl {
+    constructor(canvas, options) {
+        this._array = [];
+        this._maxNumber = 100;
         this._canvas = canvas;
         let canvasCtx = this._canvas.getContext("2d");
-        if (canvasCtx === null) throw new Error("Canvas context is null");
+        if (canvasCtx === null)
+            throw new Error("Canvas context is null");
         this._canvasCtx = canvasCtx;
         this._options = options;
     }
-
     // interface implementation
     init() {
-        if (this._array.length !== 0) { return; }
+        if (this._array.length !== 0) {
+            return;
+        }
         this._maxNumber = this._options.number ? this._options.number : this.getDotNumber();
         this.dotFactory(this._maxNumber);
     }
-
-    draw(mousePosition: IPositionObject, isClicked: boolean) {
+    draw(mousePosition, isClicked) {
         // clear canvas
         this._canvasCtx.clearRect(0, 0, this._canvas.width, this._canvas.height);
         // update dots number
         this._maxNumber = this._options.number ? this._options.number : this.getDotNumber();
         if (this._maxNumber < this._array.length) {
             this.deleteEldestDots(this._array.length - this._maxNumber);
-        } else if (this._maxNumber > this._array.length) {
+        }
+        else if (this._maxNumber > this._array.length) {
             this.dotFactory(this._maxNumber - this._array.length);
         }
         // move and draw dots
@@ -159,20 +118,26 @@ class DotControl implements  IAnimationControl {
             dot.move();
         }
         // draw lines
-        if (this._options.drawLines) { this.drawLinesBetweenDots(); }
+        if (this._options.drawLines) {
+            this.drawLinesBetweenDots();
+        }
         // handle mouse move
         if (this._options.actionOnHover) {
-            if (this._options.onHoverDrawLines) { this.drawLinesToCircleCenter(mousePosition); }
-            if (this._options.onHoverMove) { this.moveDotsOutOfCircle(
-                mousePosition, this._options.onHoverMoveRadius);
+            if (this._options.onHoverDrawLines) {
+                this.drawLinesToCircleCenter(mousePosition);
+            }
+            if (this._options.onHoverMove) {
+                this.moveDotsOutOfCircle(mousePosition, this._options.onHoverMoveRadius);
             }
         }
         // handle mouse click
         if (isClicked && this._options.actionOnClick) {
-            if (this._options.onClickMove) { this.moveDotsOutOfCircle(
-                mousePosition, this._options.onClickMoveRadius);
+            if (this._options.onClickMove) {
+                this.moveDotsOutOfCircle(mousePosition, this._options.onClickMoveRadius);
             }
-            if (this._options.onClickCreate) { this.dotFactory(this._options.onClickCreateNDots, mousePosition); }
+            if (this._options.onClickCreate) {
+                this.dotFactory(this._options.onClickCreateNDots, mousePosition);
+            }
         }
         // draw dots
         for (const dot of this._array) {
@@ -180,9 +145,8 @@ class DotControl implements  IAnimationControl {
             drawCircle(this._canvasCtx, params.x, params.y, params.r, params.colorS, params.colorF);
         }
     }
-
     // creation actions
-    dotFactory(number: number, position: IPositionObject | null = null): void {
+    dotFactory(number, position = null) {
         for (let i = 0; i < number; i++) {
             const dot = this.createRandomDot(position);
             this._array.push(dot);
@@ -191,14 +155,14 @@ class DotControl implements  IAnimationControl {
             this.deleteEldestDots(this._array.length - this._maxNumber);
         }
     }
-
-    createRandomDot(position: IPositionObject | null): Dot {
-        let x: number, y: number;
+    createRandomDot(position) {
+        let x, y;
         // optional position arg
         if (position) {
             x = position.x;
             y = position.y;
-        } else {
+        }
+        else {
             x = getRandomInt(0, this._canvas.width);
             y = getRandomInt(0, this._canvas.height);
         }
@@ -207,49 +171,47 @@ class DotControl implements  IAnimationControl {
         const ySpeed = getRandomArbitrary(this._options.minSpeedY, this._options.maxSpeedY);
         const radius = getRandomInt(this._options.minR, this._options.maxR);
         // optional fill/stroke color/opacity params
-        let colorS: string | null;
-        let colorF: string | null;
+        let colorS;
+        let colorF;
         if (this._options.stroke) {
-            const colorSRandom =
-                this._options.colorsStroke[Math.floor(Math.random() * this._options.colorsStroke.length)];
+            const colorSRandom = this._options.colorsStroke[Math.floor(Math.random() * this._options.colorsStroke.length)];
             if (this._options.opacityStroke) {
                 colorS = hexToRgb(colorSRandom, this._options.opacityStroke);
-            } else {
+            }
+            else {
                 colorS = hexToRgb(colorSRandom, getRandomInt(1, 100) / 100);
             }
-        } else {
+        }
+        else {
             colorS = null;
         }
         if (this._options.fill) {
-            const colorFRandom =
-                this._options.colorsFill[Math.floor(Math.random() * this._options.colorsFill.length)];
+            const colorFRandom = this._options.colorsFill[Math.floor(Math.random() * this._options.colorsFill.length)];
             if (this._options.opacityFill) {
                 colorF = hexToRgb(colorFRandom, this._options.opacityFill);
-            } else {
+            }
+            else {
                 colorF = hexToRgb(colorFRandom, getRandomInt(1, 100) / 100);
             }
-        } else {
+        }
+        else {
             colorF = null;
         }
-
         return new Dot(this._canvas, x, y, xSpeed, ySpeed, radius, colorS, colorF);
     }
-
-    getDotNumber(): number {
+    getDotNumber() {
         return Math.floor(this._canvas.width * this._canvas.height * this._options.density);
     }
-
-    deleteEldestDots(number: number): void {
+    deleteEldestDots(number) {
         this._array = this._array.slice(number);
         for (let i = 0; i < number; i++) {
             this._array.shift();
         }
     }
-
     // lines actions
-    getCloseDotPairs(): number[][] {
+    getCloseDotPairs() {
         const dotArray = this._array;
-        const closePairs: number[][] = [];
+        const closePairs = [];
         for (let i = 0; i < dotArray.length; i++) {
             for (let j = i; j < dotArray.length; j++) {
                 const dotIParams = dotArray[i].getProps();
@@ -260,11 +222,9 @@ class DotControl implements  IAnimationControl {
                 }
             }
         }
-
         return closePairs;
     }
-
-    drawLinesBetweenDots(): void {
+    drawLinesBetweenDots() {
         const pairs = this.getCloseDotPairs();
         this._canvasCtx.lineWidth = this._options.lineWidth;
         for (const pair of pairs) {
@@ -276,10 +236,9 @@ class DotControl implements  IAnimationControl {
             this._canvasCtx.stroke();
         }
     }
-
     // mouse events actions
-    getDotsInsideCircle(position: IPositionObject, radius: number): [Dot, number][] {
-        const dotsInCircle: [Dot, number][] = [];
+    getDotsInsideCircle(position, radius) {
+        const dotsInCircle = [];
         for (const dot of this._array) {
             const dotParams = dot.getProps();
             const distance = getDistance(position.x, position.y, dotParams.x, dotParams.y);
@@ -289,8 +248,7 @@ class DotControl implements  IAnimationControl {
         }
         return dotsInCircle;
     }
-
-    moveDotsOutOfCircle(position: IPositionObject, radius: number): void {
+    moveDotsOutOfCircle(position, radius) {
         const dotsInCircle = this.getDotsInsideCircle(position, radius);
         for (const item of dotsInCircle) {
             const dot = item[0];
@@ -298,11 +256,10 @@ class DotControl implements  IAnimationControl {
             const distance = item[1];
             const x = (dotParams.x - position.x) * (radius / distance) + position.x;
             const y = (dotParams.y - position.y) * (radius / distance) + position.y;
-            dot.moveTo({x: x, y: y});
+            dot.moveTo({ x: x, y: y });
         }
     }
-
-    drawLinesToCircleCenter(position: IPositionObject): void {
+    drawLinesToCircleCenter(position) {
         const dotsInCircle = this.getDotsInsideCircle(position, this._options.onHoverLineRadius);
         for (const item of dotsInCircle) {
             const dot = item[0];
@@ -316,35 +273,16 @@ class DotControl implements  IAnimationControl {
         }
     }
 }
-
-class DotsAnimation implements IAnimationObject {
-
-    private readonly _parent: HTMLElement;
-    private readonly _canvas: HTMLCanvasElement;
-    private readonly _animationControl: IAnimationControl;
-
-    private _fps: number;
-    private _timer: number | undefined = undefined;
-
-    private readonly _mousePosition: IPositionObject;
-    private _isMouseClicked = false;
-
-    static animationControlFactory(
-        constructor: IAnimationControlFactory, canvas: HTMLCanvasElement, options: IAnimationOptions) {
-        return new constructor(canvas, options);
-    }
-
-    constructor(parent: HTMLElement, canvasId: string,
-                options: IAnimationOptions, constructor: IAnimationControlFactory) {
+class DotsAnimation {
+    constructor(parent, canvasId, options, constructor) {
+        this._timer = undefined;
+        this._isMouseClicked = false;
         this._parent = parent;
-
         this._mousePosition = {
             x: 0,
             y: 0,
         };
-
         this._fps = options.expectedFps;
-
         this._canvas = document.createElement("canvas");
         this._canvas.id = canvasId;
         this._canvas.style.display = "block";
@@ -352,14 +290,14 @@ class DotsAnimation implements IAnimationObject {
         this._canvas.style.width = "100%";
         this._canvas.style.height = "100%";
         this._canvas.style.webkitFilter = `blur(${options.blur}px)`;
-
         this.resize();
         parent.appendChild(this._canvas);
         window.addEventListener("resize", () => { this.resize(); });
-
         this._animationControl = DotsAnimation.animationControlFactory(constructor, this._canvas, options);
     }
-
+    static animationControlFactory(constructor, canvas, options) {
+        return new constructor(canvas, options);
+    }
     resize() {
         const dpr = window.devicePixelRatio;
         this._canvas.width = this._parent.offsetWidth * dpr;
@@ -369,7 +307,6 @@ class DotsAnimation implements IAnimationObject {
         this._animationControl.draw(this._mousePosition, this._isMouseClicked);
         this._isMouseClicked = false;
     }
-
     // action methods
     start() {
         this._animationControl.init();
@@ -378,118 +315,78 @@ class DotsAnimation implements IAnimationObject {
         this._timer = window.setInterval(() => {
             // tslint:disable-next-line:no-unused-expression
             window.requestAnimationFrame(() => { this.draw(); }) ||
-            window.webkitRequestAnimationFrame(() => { this.draw(); }); },
-            1000 / this._fps);
+                window.webkitRequestAnimationFrame(() => { this.draw(); });
+        }, 1000 / this._fps);
     }
     stop() {
         clearInterval(this._timer);
         this._timer = undefined;
         const canvasCtx = this._canvas.getContext("2d");
-        window.setTimeout(() => { if (canvasCtx !== null) 
-            canvasCtx.clearRect(0, 0, this._canvas.width, this._canvas.height); }, 20);
+        window.setTimeout(() => {
+            if (canvasCtx !== null)
+                canvasCtx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+        }, 20);
     }
-
     // event handlers
     onClick() {
         this._isMouseClicked = true;
     }
-    onMouseMove(e: MouseEvent) {
+    onMouseMove(e) {
         const dpr = window.devicePixelRatio;
         const xDpr = (e.clientX - this._parent.offsetLeft + window.pageXOffset) * dpr;
         const yDpr = (e.clientY - this._parent.offsetTop + window.pageYOffset) * dpr;
-
         this._mousePosition.x = xDpr;
         this._mousePosition.y = yDpr;
     }
 }
-
-
-
-interface IAnimationOptions {    
-    expectedFps: number, // positive integer 
-
-    minR: number, // positive number
-    maxR: number, // positive number
-    minSpeedX: number,
-    maxSpeedX: number,
-    minSpeedY: number,
-    maxSpeedY: number,
-    
-    blur: number, // 0 or positive integer
-    stroke: boolean,
-    fill: boolean,
-    colorsStroke: string[], // color array to pick from
-    colorsFill: string[], // color array to pick from
-    opacityStroke: number | null, // null or fixed from 0 to 1
-    opacityFill: number | null, // null or fixed from 0 to 1
-
-    number: number | null, // null(then "density" field is used) or fixed number. strongly affects performance
-    density: number, // positive number. strongly affects performance
-
-    drawLines: boolean,
-    lineColor: string,
-    lineLength: number,
-    lineWidth: number,
-
-    actionOnClick: boolean,
-    actionOnHover: boolean,
-    onClickCreate: boolean,
-    onClickMove: boolean,
-    onHoverMove: boolean,
-    onHoverDrawLines: boolean,
-    onClickCreateNDots: number, // positive integer
-    onClickMoveRadius: number, // positive integer
-    onHoverMoveRadius: number, // positive integer
-    onHoverLineRadius: number // positive integer
-}
-
-class DotsAnimationFactory {    
-    private static _optionsDefault : IAnimationOptions = {       
-        expectedFps: 60, 
-        minR: 1,
-        maxR: 5,
-        minSpeedX: -0.5,
-        maxSpeedX: 0.5,
-        minSpeedY: -0.5,
-        maxSpeedY: 0.5,
-        blur: 0,
-        stroke: false,
-        fill: true,
-        colorsStroke: ["#ffffff"],
-        colorsFill: ["#ffffff", "#fff4c1", "#faefdb"],
-        opacityStroke: 1,
-        opacityFill: null,
-        number: null,
-        density: 0.00005,
-        drawLines: true,
-        lineColor: "#717892",
-        lineLength: 150,
-        lineWidth: 1,
-        actionOnClick: true,
-        actionOnHover: true,
-        onClickCreate: true,
-        onClickMove: true,
-        onHoverMove: true,
-        onHoverDrawLines: true,
-        onClickCreateNDots: 10,
-        onClickMoveRadius: 200,
-        onHoverMoveRadius: 50,
-        onHoverLineRadius: 150
-    };
-
-    static async createDotsAnimation(containerSelector: string, canvasId: string, optionsJsonPath: string): Promise<IAnimationObject> {
-        let options: IAnimationOptions = DotsAnimationFactory._optionsDefault;
-        await fetch(optionsJsonPath)
-            .then(result => {
+class DotsAnimationFactory {
+    static createDotsAnimation(containerSelector, canvasId, optionsJsonPath) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let options = DotsAnimationFactory._optionsDefault;
+            yield fetch(optionsJsonPath)
+                .then(result => {
                 return result.text();
             })
-            .then(text => {
+                .then(text => {
                 options = JSON.parse(text);
             });
-        const container = document.querySelector(containerSelector);
-        if (container === null) throw new Error("Container is null");
-        return new DotsAnimation(container as HTMLElement, canvasId, options, DotControl);
+            const container = document.querySelector(containerSelector);
+            if (container === null)
+                throw new Error("Container is null");
+            return new DotsAnimation(container, canvasId, options, DotControl);
+        });
     }
 }
-
+DotsAnimationFactory._optionsDefault = {
+    expectedFps: 60,
+    minR: 1,
+    maxR: 5,
+    minSpeedX: -0.5,
+    maxSpeedX: 0.5,
+    minSpeedY: -0.5,
+    maxSpeedY: 0.5,
+    blur: 0,
+    stroke: false,
+    fill: true,
+    colorsStroke: ["#ffffff"],
+    colorsFill: ["#ffffff", "#fff4c1", "#faefdb"],
+    opacityStroke: 1,
+    opacityFill: null,
+    number: null,
+    density: 0.00005,
+    drawLines: true,
+    lineColor: "#717892",
+    lineLength: 150,
+    lineWidth: 1,
+    actionOnClick: true,
+    actionOnHover: true,
+    onClickCreate: true,
+    onClickMove: true,
+    onHoverMove: true,
+    onHoverDrawLines: true,
+    onClickCreateNDots: 10,
+    onClickMoveRadius: 200,
+    onHoverMoveRadius: 50,
+    onHoverLineRadius: 150
+};
 export default DotsAnimationFactory;

@@ -41,17 +41,17 @@
     <div id="container-snow" class="animation-container right"></div>
     
     <script type="module">
-        import DotsAnimation from "./dist/dots-animation.js";
+        import DotsAnimationFactory from "./dist/dots-animation.js";
 
-        DotsAnimation.main(
-            "#container-geometric", 
-            "canvas-geometric", 
-            "./config/anim.config-geometric.json"
+        DotsAnimationFactory.createDotsAnimation( // create IAnimationObject
+            "#container-geometric", // id of existing HTMLElement (container for canvas)
+            "canvas-geometric", // id for new HTMLCanvasElement 
+            "./config/anim.config-geometric.json" // path to configuration json
             ).then((animationCanvas) => {
-                animationCanvas.start();
+                animationCanvas.start(); // start animation
             });
             
-        DotsAnimation.main(
+            DotsAnimationFactory.createDotsAnimation(
             "#container-snow", 
             "canvas-snow", 
             "./config/anim.config-snow.json"
