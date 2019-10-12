@@ -1,10 +1,10 @@
 {
   "name": "dots-animation",
   "version": "0.0.1",
-  "description": "module for filling your html container with nice dots animation",
+  "description": "module for filling your html container with fancy moving dots animation",
   "main": "./dist/dots-animation.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -15,7 +15,7 @@
     "background",
     "customizable"
   ],
-  "author": "yermolim <yermolim@gmail.com>",
+  "author": "Volodymyr Yermolenko <yermolim@gmail.com>",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/yermolim/dots-animation/issues"
