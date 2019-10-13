@@ -4,7 +4,7 @@ Animation is customizable by changing json config file.
 # Quick start
 Use code below to apply animation to your container (two default config jsons are placed in "config" folder):
 ```javascript
-import DotsAnimationFactory from "./dist/dots-animation.js";
+import { DotsAnimationFactory }  from "./dist/dots-animation.js";
 
 DotsAnimationFactory.createDotsAnimation( // create IAnimationObject
     "#container-geometric", // id of existing HTMLElement (container for canvas)

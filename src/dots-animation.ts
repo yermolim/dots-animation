@@ -37,14 +37,16 @@ function drawCircle(ctx: CanvasRenderingContext2D,
 
 
 
+
+
+export interface IAnimationObject {
+    start(): void;
+    stop(): void;
+}
+
 interface IPositionObject {
     x: number;
     y: number;
-}
-
-interface IAnimationObject {
-    start(): void;
-    stop(): void;
 }
 
 interface IMovableObject {
@@ -443,7 +445,7 @@ interface IAnimationOptions {
     onHoverLineRadius: number // positive integer
 }
 
-class DotsAnimationFactory {    
+export class DotsAnimationFactory {    
     private static _optionsDefault : IAnimationOptions = {       
         expectedFps: 60, 
         minR: 1,
@@ -491,5 +493,3 @@ class DotsAnimationFactory {
         return new DotsAnimation(container as HTMLElement, canvasId, options, DotControl);
     }
 }
-
-export default DotsAnimationFactory;
