@@ -481,13 +481,11 @@ export class DotsAnimationFactory {
 
     static async createDotsAnimation(containerSelector: string, canvasId: string, optionsJsonPath: string): Promise<IAnimationObject> {
         let options: IAnimationOptions = DotsAnimationFactory._optionsDefault;
-        await fetch(optionsJsonPath)
-            .then(result => {
-                return result.text();
-            })
-            .then(text => {
-                options = JSON.parse(text);
-            });
+        const response = await fetch(optionsJsonPath);
+        if (response.ok) {
+            const text = await response.text();
+            options = JSON.parse(text);
+        }
         const container = document.querySelector(containerSelector);
         if (container === null) throw new Error("Container is null");
         return new DotsAnimation(container as HTMLElement, canvasId, options, DotControl);
