@@ -27,5 +27,6 @@
   "homepage": "https://github.com/yermolim/dots-animation#readme",
   "devDependencies": {
     "typescript": "^3.6.4"
-  }
+  },
+  "dependencies": {}
 }

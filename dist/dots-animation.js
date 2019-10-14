@@ -1,4 +1,3 @@
-// dot class (defines particles and their methods)
 // common functions
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -35,6 +34,14 @@ function drawCircle(ctx, x, y, r, colorS, colorF) {
         ctx.strokeStyle = colorS;
         ctx.stroke();
     }
+}
+function drawLine(ctx, x1, y1, x2, y2, width, color) {
+    ctx.lineWidth = width;
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
 }
 class Dot {
     constructor(_canvas, _x, _y, _xSpeed, _ySpeed, _r, _colorS, _colorF) {
@@ -226,14 +233,11 @@ class DotControl {
     }
     drawLinesBetweenDots() {
         const pairs = this.getCloseDotPairs();
-        this._canvasCtx.lineWidth = this._options.lineWidth;
+        const width = this._options.lineWidth;
         for (const pair of pairs) {
             const opacity = (1 - pair[4] / this._options.lineLength) / 2;
-            this._canvasCtx.strokeStyle = hexToRgb(this._options.lineColor, opacity);
-            this._canvasCtx.beginPath();
-            this._canvasCtx.moveTo(pair[0], pair[1]);
-            this._canvasCtx.lineTo(pair[2], pair[3]);
-            this._canvasCtx.stroke();
+            const color = hexToRgb(this._options.lineColor, opacity);
+            drawLine(this._canvasCtx, pair[0], pair[1], pair[2], pair[3], width, color);
         }
     }
     // mouse events actions
@@ -261,15 +265,13 @@ class DotControl {
     }
     drawLinesToCircleCenter(position) {
         const dotsInCircle = this.getDotsInsideCircle(position, this._options.onHoverLineRadius);
+        const width = this._options.lineWidth;
         for (const item of dotsInCircle) {
             const dot = item[0];
             const dotParams = dot.getProps();
             const opacity = (1 - item[1] / this._options.onHoverLineRadius);
-            this._canvasCtx.strokeStyle = hexToRgb(this._options.lineColor, opacity);
-            this._canvasCtx.beginPath();
-            this._canvasCtx.moveTo(position.x, position.y);
-            this._canvasCtx.lineTo(dotParams.x, dotParams.y);
-            this._canvasCtx.stroke();
+            const color = hexToRgb(this._options.lineColor, opacity);
+            drawLine(this._canvasCtx, position.x, position.y, dotParams.x, dotParams.y, width, color);
         }
     }
 }
