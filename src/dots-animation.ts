@@ -1,5 +1,4 @@
 //#region  common functions
-
 function getDistance(x1: number, y1: number, x2: number, y2: number): number {
     return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
@@ -21,7 +20,7 @@ function hexToRgb(hex: string, opacity: number): string {
 }
 
 function drawCircle(ctx: CanvasRenderingContext2D,
-                    x: number, y: number, r: number, colorS: string | null, colorF: string | null): void {
+    x: number, y: number, r: number, colorS: string | null, colorF: string | null): void {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2, true);
     if (colorF !== null) {
@@ -35,15 +34,14 @@ function drawCircle(ctx: CanvasRenderingContext2D,
 }
 
 function drawLine(ctx: CanvasRenderingContext2D,
-    x1: number, y1: number, x2: number, y2:number, width: number, color: string) {       
-        ctx.lineWidth = width;
-        ctx.strokeStyle = color;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke(); 
-    }
-
+    x1: number, y1: number, x2: number, y2: number, width: number, color: string) {
+    ctx.lineWidth = width;
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+}
 //#endregion
 
 
@@ -63,7 +61,7 @@ interface IMovableObject {
 }
 
 interface IAnimationControlFactory {
-    new (canvas: HTMLCanvasElement, options: IAnimationOptions): IAnimationControl;
+    new(canvas: HTMLCanvasElement, options: IAnimationOptions): IAnimationControl;
 }
 
 interface IAnimationControl {
@@ -85,14 +83,15 @@ interface IDotProps {
 
 class Dot implements IMovableObject {
 
-    constructor (private _canvas: HTMLCanvasElement,
-                 private _x: number, 
-                 private _y: number,
-                 private _xSpeed: number, 
-                 private _ySpeed: number,
-                 private _r: number,
-                 private _colorS: string | null, 
-                 private _colorF: string | null) {
+    constructor(private _canvas: HTMLCanvasElement,
+        private _offset: number,
+        private _x: number,
+        private _y: number,
+        private _xSpeed: number,
+        private _ySpeed: number,
+        private _r: number,
+        private _colorS: string | null,
+        private _colorF: string | null) {
     }
 
     getProps(): IDotProps {
@@ -108,18 +107,25 @@ class Dot implements IMovableObject {
     }
 
     move(): void {
-        if (this._x < -1 * this._r) {
-            this._x = this._canvas.width + this._r;
-        } else if (this._x > this._canvas.width + this._r) {
-            this._x = -1 * this._r;
+        let offset = Math.max(this._offset, this._r);
+        let xMin = -1 * offset;
+        let yMin = -1 * offset;
+        let xMax = this._canvas.width + offset;
+        let yMax = this._canvas.height + offset;
+
+
+        if (this._x < xMin) {
+            this._x = xMax;
+        } else if (this._x > xMax) {
+            this._x = xMin;
         } else {
             this._x += this._xSpeed;
         }
 
-        if (this._y < -1 * this._r) {
-            this._y = this._canvas.height + this._r;
-        } else if (this._y > this._canvas.height + this._r) {
-            this._y = -1 * this._r;
+        if (this._y < yMin) {
+            this._y = yMax;
+        } else if (this._y > yMax) {
+            this._y = yMin;
         } else {
             this._y += this._ySpeed;
         }
@@ -131,7 +137,7 @@ class Dot implements IMovableObject {
     }
 }
 
-class DotControl implements  IAnimationControl {
+class DotControl implements IAnimationControl {
 
     private _array: Dot[] = [];
     private _maxNumber = 100;
@@ -139,7 +145,7 @@ class DotControl implements  IAnimationControl {
     private readonly _canvasCtx: CanvasRenderingContext2D;
     private readonly _options: IAnimationOptions;
 
-    constructor (canvas: HTMLCanvasElement, options: IAnimationOptions) {
+    constructor(canvas: HTMLCanvasElement, options: IAnimationOptions) {
         this._canvas = canvas;
         let canvasCtx = this._canvas.getContext("2d");
         if (canvasCtx === null) throw new Error("Canvas context is null");
@@ -173,14 +179,16 @@ class DotControl implements  IAnimationControl {
         // handle mouse move
         if (this._options.actionOnHover) {
             if (this._options.onHoverDrawLines) { this.drawLinesToCircleCenter(mousePosition); }
-            if (this._options.onHoverMove) { this.moveDotsOutOfCircle(
-                mousePosition, this._options.onHoverMoveRadius);
+            if (this._options.onHoverMove) {
+                this.moveDotsOutOfCircle(
+                    mousePosition, this._options.onHoverMoveRadius);
             }
         }
         // handle mouse click
         if (isClicked && this._options.actionOnClick) {
-            if (this._options.onClickMove) { this.moveDotsOutOfCircle(
-                mousePosition, this._options.onClickMoveRadius);
+            if (this._options.onClickMove) {
+                this.moveDotsOutOfCircle(
+                    mousePosition, this._options.onClickMoveRadius);
             }
             if (this._options.onClickCreate) { this.dotFactory(this._options.onClickCreateNDots, mousePosition); }
         }
@@ -242,7 +250,8 @@ class DotControl implements  IAnimationControl {
             colorF = null;
         }
 
-        return new Dot(this._canvas, x, y, xSpeed, ySpeed, radius, colorS, colorF);
+        let offset = this._options.drawLines ? this._options.lineLength : 0;
+        return new Dot(this._canvas, offset, x, y, xSpeed, ySpeed, radius, colorS, colorF);
     }
 
     getDotNumber(): number {
@@ -305,7 +314,7 @@ class DotControl implements  IAnimationControl {
             const distance = item[1];
             const x = (dotParams.x - position.x) * (radius / distance) + position.x;
             const y = (dotParams.y - position.y) * (radius / distance) + position.y;
-            dot.moveTo({x: x, y: y});
+            dot.moveTo({ x: x, y: y });
         }
     }
 
@@ -340,7 +349,7 @@ class DotsAnimation implements IAnimationObject {
     }
 
     constructor(parent: HTMLElement, canvasId: string,
-                options: IAnimationOptions, constructor: IAnimationControlFactory) {
+        options: IAnimationOptions, constructor: IAnimationControlFactory) {
         this._parent = parent;
 
         this._mousePosition = {
@@ -383,15 +392,18 @@ class DotsAnimation implements IAnimationObject {
         this._timer = window.setInterval(() => {
             // tslint:disable-next-line:no-unused-expression
             window.requestAnimationFrame(() => { this.draw(); }) ||
-            window.webkitRequestAnimationFrame(() => { this.draw(); }); },
+                window.webkitRequestAnimationFrame(() => { this.draw(); });
+        },
             1000 / this._fps);
     }
     stop() {
         clearInterval(this._timer);
         this._timer = undefined;
         const canvasCtx = this._canvas.getContext("2d");
-        window.setTimeout(() => { if (canvasCtx !== null) 
-            canvasCtx.clearRect(0, 0, this._canvas.width, this._canvas.height); }, 20);
+        window.setTimeout(() => {
+            if (canvasCtx !== null)
+                canvasCtx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+        }, 20);
     }
 
     // event handlers
@@ -408,9 +420,7 @@ class DotsAnimation implements IAnimationObject {
     }
 }
 
-
-
-interface IAnimationOptions {    
+interface IAnimationOptions {
     expectedFps: number, // positive integer 
 
     minR: number, // positive number
@@ -419,7 +429,7 @@ interface IAnimationOptions {
     maxSpeedX: number,
     minSpeedY: number,
     maxSpeedY: number,
-    
+
     blur: number, // 0 or positive integer
     stroke: boolean,
     fill: boolean,
@@ -448,9 +458,9 @@ interface IAnimationOptions {
     onHoverLineRadius: number // positive integer
 }
 
-export class DotsAnimationFactory {    
-    private static _optionsDefault : IAnimationOptions = {       
-        expectedFps: 60, 
+export class DotsAnimationFactory {
+    private static _optionsDefault: IAnimationOptions = {
+        expectedFps: 60,
         minR: 1,
         maxR: 5,
         minSpeedX: -0.5,

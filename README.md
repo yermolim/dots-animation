@@ -1,5 +1,5 @@
 # Dots-animation
-Simple module for adding to your html background container a canvas with fancy moving dots animation.
+Simple module for adding to your html background container a canvas with fancy responcive dots animation.
 Animation is customizable by changing json config file.
 # Quick start
 Use code below to apply animation to your container (two default config jsons are placed in "config" folder):

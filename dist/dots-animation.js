@@ -1,12 +1,13 @@
-// common functions
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+//#region  common functions
 function getDistance(x1, y1, x2, y2) {
     return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
@@ -44,8 +45,9 @@ function drawLine(ctx, x1, y1, x2, y2, width, color) {
     ctx.stroke();
 }
 class Dot {
-    constructor(_canvas, _x, _y, _xSpeed, _ySpeed, _r, _colorS, _colorF) {
+    constructor(_canvas, _offset, _x, _y, _xSpeed, _ySpeed, _r, _colorS, _colorF) {
         this._canvas = _canvas;
+        this._offset = _offset;
         this._x = _x;
         this._y = _y;
         this._xSpeed = _xSpeed;
@@ -66,20 +68,25 @@ class Dot {
         };
     }
     move() {
-        if (this._x < -1 * this._r) {
-            this._x = this._canvas.width + this._r;
+        let offset = Math.max(this._offset, this._r);
+        let xMin = -1 * offset;
+        let yMin = -1 * offset;
+        let xMax = this._canvas.width + offset;
+        let yMax = this._canvas.height + offset;
+        if (this._x < xMin) {
+            this._x = xMax;
         }
-        else if (this._x > this._canvas.width + this._r) {
-            this._x = -1 * this._r;
+        else if (this._x > xMax) {
+            this._x = xMin;
         }
         else {
             this._x += this._xSpeed;
         }
-        if (this._y < -1 * this._r) {
-            this._y = this._canvas.height + this._r;
+        if (this._y < yMin) {
+            this._y = yMax;
         }
-        else if (this._y > this._canvas.height + this._r) {
-            this._y = -1 * this._r;
+        else if (this._y > yMax) {
+            this._y = yMin;
         }
         else {
             this._y += this._ySpeed;
@@ -204,7 +211,8 @@ class DotControl {
         else {
             colorF = null;
         }
-        return new Dot(this._canvas, x, y, xSpeed, ySpeed, radius, colorS, colorF);
+        let offset = this._options.drawLines ? this._options.lineLength : 0;
+        return new Dot(this._canvas, offset, x, y, xSpeed, ySpeed, radius, colorS, colorF);
     }
     getDotNumber() {
         return Math.floor(this._canvas.width * this._canvas.height * this._options.density);
