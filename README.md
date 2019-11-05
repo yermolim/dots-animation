@@ -34,15 +34,18 @@ Configuration with default values and with comments:
   "maxSpeedY": 0.5, // any number, sigh defines direction of movement
   
   "blur": 1, // blur intensity in px, 0 - disabled
-  "stroke": false, // circle dots with color
+
   "fill": true, // fill dots with color
-  // color is picked randomly from colors array
-  "colorsStroke": ["#FFC652", "#FFB652", "#FF9652"], // hex color strings array
-  "colorsFill": ["#FFC652", "#FFB652", "#FF9652"], // hex color strings array
-  "opacityStroke": 0.1, // null for random opacity | from 0 to 1 where 0 means transparent
-  "opacityFill": null, // null for random opacity | from 0 to 1 where 0 means transparent
-  "opacityFillMin": 0, // from 0 to 1 where 0 means transparent
-  "opacityFillStep": 0, // from 0 to 1 where 0 means no opacity changes per frame, for creating blinking effect
+  "colorsFill": ["#FFC652", "#FFB652", "#FF9652"], // hex color strings array, color is picked randomly from colors arra
+  "opacityFill": null, // null for random opacity | from 0 to 100 where 0 means transparent
+  "opacityFillMin": 0, // from 0 to 100 where 0 means transparent
+  "opacityFillStep": 0, // from 0 to 100 where 0 means no opacity changes per frame, for creating blinking effect
+
+  "stroke": false, // circle dots with color
+  "colorsStroke": ["#FFC652", "#FFB652", "#FF9652"], // hex color strings array, color is picked randomly from colors arra
+  "opacityStroke": 10, // null for random opacity | from 0 to 100 where 0 means transparent
+  "opacityStrokeMin": 0, // from 0 to 100 where 0 means transparent
+  "opacityStrokeStep": 0, // from 0 to 100 where 0 means no opacity changes per frame, for creating blinking effect
   
   // number option defines maximum number of dots in canvas at the same time
   // regardless of canvas size

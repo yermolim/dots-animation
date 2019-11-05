@@ -11,12 +11,12 @@ function getRandomArbitrary(min: number, max: number): number {
     return Math.random() * (max - min) + min;
 }
 
-function hexToRgb(hex: string, opacity: number): string {
+function hexToRgba(hex: string, opacity: number, denominator: number = 1): string {
     hex = hex.replace("#", "");
     const r = parseInt(hex.substring(0, hex.length / 3), 16);
     const g = parseInt(hex.substring(hex.length / 3, 2 * hex.length / 3), 16);
     const b = parseInt(hex.substring(2 * hex.length / 3, 3 * hex.length / 3), 16);
-    return "rgba(" + r + "," + g + "," + b + "," + opacity + ")";
+    return "rgba(" + r + "," + g + "," + b + "," + opacity / denominator + ")";
 }
 
 function drawCircle(ctx: CanvasRenderingContext2D,
@@ -77,16 +77,37 @@ interface IDotProps {
 }
 
 class Dot {
+    private _colorS: string | null;
+    private _colorF: string | null;
+    private _opacitySCurrent: number;
+    private _opacityFCurrent: number;
 
     constructor(private _canvas: HTMLCanvasElement,
         private _offset: number,
+
         private _x: number,
         private _y: number,
         private _xSpeed: number,
         private _ySpeed: number,
+
         private _r: number,
-        private _colorS: string | null,
-        private _colorF: string | null) {
+
+        private _colorSHex: string | null,
+        private _colorFHex: string | null,
+
+        private _opacitySMin: number,
+        private _opacitySMax: number,
+        private _opacitySStep: number,
+        
+        private _opacityFMin: number,
+        private _opacityFMax: number,
+        private _opacityFStep: number) { 
+            this._opacitySCurrent = _opacitySMax;                
+            this._opacityFCurrent = _opacityFMax;                
+            this._colorS = _colorSHex === null ? 
+                null : hexToRgba(_colorSHex, this._opacitySCurrent, 100);
+            this._colorF = _colorFHex === null ? 
+                null : hexToRgba(_colorFHex, this._opacityFCurrent, 100);
     }
 
     getProps(): IDotProps {
@@ -126,8 +147,15 @@ class Dot {
         }
     }
 
-    updateColor(): void {
+    updateColor(): void {    
+        if (this._opacitySStep != 0 && this._colorSHex !== null) {
+            
+            this._colorS = hexToRgba(this._colorSHex, this._opacityFCurrent, 100);
+        }
+        if (this._opacityFStep != 0 && this._colorFHex !== null) {
 
+            this._colorF = hexToRgba(this._colorFHex, this._opacityFCurrent, 100);
+        }
     }
 
     moveTo(position: IPositionObject): void {
@@ -172,6 +200,7 @@ class DotControl implements IAnimationControl {
         // move dots
         for (const dot of this._array) {
             dot.updatePosition();
+            dot.updateColor();
         }
         // draw lines
         if (this._options.drawLines) { this.drawLinesBetweenDots(); }
@@ -223,34 +252,34 @@ class DotControl implements IAnimationControl {
         const xSpeed = getRandomArbitrary(this._options.minSpeedX, this._options.maxSpeedX);
         const ySpeed = getRandomArbitrary(this._options.minSpeedY, this._options.maxSpeedY);
         const radius = getRandomInt(this._options.minR, this._options.maxR);
-        // optional fill/stroke color/opacity params
-        let colorS: string | null;
-        let colorF: string | null;
-        if (this._options.stroke) {
-            const colorSRandom =
-                this._options.colorsStroke[Math.floor(Math.random() * this._options.colorsStroke.length)];
-            if (this._options.opacityStroke) {
-                colorS = hexToRgb(colorSRandom, this._options.opacityStroke);
-            } else {
-                colorS = hexToRgb(colorSRandom, getRandomInt(1, 100) / 100);
-            }
-        } else {
-            colorS = null;
-        }
-        if (this._options.fill) {
-            const colorFRandom =
-                this._options.colorsFill[Math.floor(Math.random() * this._options.colorsFill.length)];
-            if (this._options.opacityFill) {
-                colorF = hexToRgb(colorFRandom, this._options.opacityFill);
-            } else {
-                colorF = hexToRgb(colorFRandom, getRandomInt(1, 100) / 100);
-            }
-        } else {
-            colorF = null;
-        }
+        // fill/stroke color params
+        let colorS: string | null = null;
+        let colorF: string | null = null;
+        if (this._options.stroke)
+            colorS = this._options.colorsStroke[Math.floor(Math.random() * 
+                this._options.colorsStroke.length)];
+        if (this._options.fill)
+            colorF = this._options.colorsFill[Math.floor(Math.random() *
+                this._options.colorsFill.length)];
+        // fill/stroke opacity params
+        let opacitySMin = this._options.opacityStrokeMin;
+        let opacitySMax = this._options.opacityStroke ? 
+            Math.max(opacitySMin, this._options.opacityStroke) :
+            getRandomInt(opacitySMin, 100);
+        let opacitySStep = this._options.opacityStrokeStep;
+        let opacityFMin = this._options.opacityFillMin;
+        let opacityFMax = this._options.opacityFill ? 
+        Math.max(opacityFMin, this._options.opacityFill) :
+        getRandomInt(opacityFMin, 100);
+        let opacityFStep = this._options.opacityFillStep;
 
         let offset = this._options.drawLines ? this._options.lineLength : 0;
-        return new Dot(this._canvas, offset, x, y, xSpeed, ySpeed, radius, colorS, colorF);
+        return new Dot(this._canvas, offset, 
+            x, y, xSpeed, ySpeed, 
+            radius, 
+            colorS, colorF, 
+            opacitySMin, opacitySMax, opacitySStep,
+            opacityFMin, opacityFMax, opacityFStep);
     }
 
     getDotNumber(): number {
@@ -287,7 +316,7 @@ class DotControl implements IAnimationControl {
         const width = this._options.lineWidth;
         for (const pair of pairs) {
             const opacity = (1 - pair[4] / this._options.lineLength) / 2;
-            const color = hexToRgb(this._options.lineColor, opacity);
+            const color = hexToRgba(this._options.lineColor, opacity);
             drawLine(this._canvasCtx, pair[0], pair[1], pair[2], pair[3], width, color);
         }
     }
@@ -324,7 +353,7 @@ class DotControl implements IAnimationControl {
             const dot = item[0];
             const dotParams = dot.getProps();
             const opacity = (1 - item[1] / this._options.onHoverLineRadius);
-            const color = hexToRgb(this._options.lineColor, opacity);
+            const color = hexToRgba(this._options.lineColor, opacity);
             drawLine(this._canvasCtx, position.x, position.y, dotParams.x, dotParams.y, width, color);
         }
     }
@@ -419,7 +448,7 @@ class DotsAnimation implements IAnimationObject {
 
         const xDpr = (e.clientX - xRelToDoc + window.pageXOffset) * dpr;
         const yDpr = (e.clientY - yRelToDoc + window.pageYOffset) * dpr;
-        
+
         this._mousePosition.x = xDpr;
         this._mousePosition.y = yDpr;
     }
@@ -436,14 +465,18 @@ interface IAnimationOptions {
     maxSpeedY: number,
 
     blur: number, // 0 or positive integer
+
     stroke: boolean,
-    fill: boolean,
     colorsStroke: string[], // color array to pick from
+    opacityStroke: number | null, // null or fixed from 0 to 100
+    opacityStrokeMin: number, // number from 0 to 100
+    opacityStrokeStep: number, // number from 0 to 100
+
+    fill: boolean,
     colorsFill: string[], // color array to pick from
-    opacityStroke: number | null, // null or fixed from 0 to 1
-    opacityFill: number | null, // null or fixed from 0 to 1
-    opacityFillMin: number, // number from 0 to 1
-    opacityFillStep: number, // number from 0 to 1
+    opacityFill: number | null, // null or fixed from 0 to 100
+    opacityFillMin: number, // number from 0 to 100
+    opacityFillStep: number, // number from 0 to 100
 
     number: number | null, // null(then "density" field is used) or fixed number. strongly affects performance
     density: number, // positive number. strongly affects performance
@@ -475,14 +508,16 @@ export class DotsAnimationFactory {
         minSpeedY: -0.5,
         maxSpeedY: 0.5,
         blur: 0,
-        stroke: false,
         fill: true,
-        colorsStroke: ["#ffffff"],
         colorsFill: ["#ffffff", "#fff4c1", "#faefdb"],
-        opacityStroke: 1,
         opacityFill: null,
         opacityFillMin: 0,
         opacityFillStep: 0,
+        stroke: false,
+        colorsStroke: ["#ffffff"],
+        opacityStroke: 1,
+        opacityStrokeMin: 0,
+        opacityStrokeStep: 0,
         number: null,
         density: 0.00005,
         drawLines: true,

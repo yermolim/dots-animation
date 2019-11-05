@@ -17,12 +17,12 @@ function getRandomInt(min, max) {
 function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
 }
-function hexToRgb(hex, opacity) {
+function hexToRgba(hex, opacity, denominator = 1) {
     hex = hex.replace("#", "");
     const r = parseInt(hex.substring(0, hex.length / 3), 16);
     const g = parseInt(hex.substring(hex.length / 3, 2 * hex.length / 3), 16);
     const b = parseInt(hex.substring(2 * hex.length / 3, 3 * hex.length / 3), 16);
-    return "rgba(" + r + "," + g + "," + b + "," + opacity + ")";
+    return "rgba(" + r + "," + g + "," + b + "," + opacity / denominator + ")";
 }
 function drawCircle(ctx, x, y, r, colorS, colorF) {
     ctx.beginPath();
@@ -45,7 +45,7 @@ function drawLine(ctx, x1, y1, x2, y2, width, color) {
     ctx.stroke();
 }
 class Dot {
-    constructor(_canvas, _offset, _x, _y, _xSpeed, _ySpeed, _r, _colorS, _colorF) {
+    constructor(_canvas, _offset, _x, _y, _xSpeed, _ySpeed, _r, _colorSHex, _colorFHex, _opacitySMin, _opacitySMax, _opacitySStep, _opacityFMin, _opacityFMax, _opacityFStep) {
         this._canvas = _canvas;
         this._offset = _offset;
         this._x = _x;
@@ -53,8 +53,20 @@ class Dot {
         this._xSpeed = _xSpeed;
         this._ySpeed = _ySpeed;
         this._r = _r;
-        this._colorS = _colorS;
-        this._colorF = _colorF;
+        this._colorSHex = _colorSHex;
+        this._colorFHex = _colorFHex;
+        this._opacitySMin = _opacitySMin;
+        this._opacitySMax = _opacitySMax;
+        this._opacitySStep = _opacitySStep;
+        this._opacityFMin = _opacityFMin;
+        this._opacityFMax = _opacityFMax;
+        this._opacityFStep = _opacityFStep;
+        this._opacitySCurrent = _opacitySMax;
+        this._opacityFCurrent = _opacityFMax;
+        this._colorS = _colorSHex === null ?
+            null : hexToRgba(_colorSHex, this._opacitySCurrent, 100);
+        this._colorF = _colorFHex === null ?
+            null : hexToRgba(_colorFHex, this._opacityFCurrent, 100);
     }
     getProps() {
         return {
@@ -93,6 +105,12 @@ class Dot {
         }
     }
     updateColor() {
+        if (this._opacitySStep != 0 && this._colorSHex !== null) {
+            this._colorS = hexToRgba(this._colorSHex, this._opacityFCurrent, 100);
+        }
+        if (this._opacityFStep != 0 && this._colorFHex !== null) {
+            this._colorF = hexToRgba(this._colorFHex, this._opacityFCurrent, 100);
+        }
     }
     moveTo(position) {
         this._x = position.x;
@@ -132,6 +150,7 @@ class DotControl {
         // move dots
         for (const dot of this._array) {
             dot.updatePosition();
+            dot.updateColor();
         }
         // draw lines
         if (this._options.drawLines) {
@@ -186,35 +205,28 @@ class DotControl {
         const xSpeed = getRandomArbitrary(this._options.minSpeedX, this._options.maxSpeedX);
         const ySpeed = getRandomArbitrary(this._options.minSpeedY, this._options.maxSpeedY);
         const radius = getRandomInt(this._options.minR, this._options.maxR);
-        // optional fill/stroke color/opacity params
-        let colorS;
-        let colorF;
-        if (this._options.stroke) {
-            const colorSRandom = this._options.colorsStroke[Math.floor(Math.random() * this._options.colorsStroke.length)];
-            if (this._options.opacityStroke) {
-                colorS = hexToRgb(colorSRandom, this._options.opacityStroke);
-            }
-            else {
-                colorS = hexToRgb(colorSRandom, getRandomInt(1, 100) / 100);
-            }
-        }
-        else {
-            colorS = null;
-        }
-        if (this._options.fill) {
-            const colorFRandom = this._options.colorsFill[Math.floor(Math.random() * this._options.colorsFill.length)];
-            if (this._options.opacityFill) {
-                colorF = hexToRgb(colorFRandom, this._options.opacityFill);
-            }
-            else {
-                colorF = hexToRgb(colorFRandom, getRandomInt(1, 100) / 100);
-            }
-        }
-        else {
-            colorF = null;
-        }
+        // fill/stroke color params
+        let colorS = null;
+        let colorF = null;
+        if (this._options.stroke)
+            colorS = this._options.colorsStroke[Math.floor(Math.random() *
+                this._options.colorsStroke.length)];
+        if (this._options.fill)
+            colorF = this._options.colorsFill[Math.floor(Math.random() *
+                this._options.colorsFill.length)];
+        // fill/stroke opacity params
+        let opacitySMin = this._options.opacityStrokeMin;
+        let opacitySMax = this._options.opacityStroke ?
+            Math.max(opacitySMin, this._options.opacityStroke) :
+            getRandomInt(opacitySMin, 100);
+        let opacitySStep = this._options.opacityStrokeStep;
+        let opacityFMin = this._options.opacityFillMin;
+        let opacityFMax = this._options.opacityFill ?
+            Math.max(opacityFMin, this._options.opacityFill) :
+            getRandomInt(opacityFMin, 100);
+        let opacityFStep = this._options.opacityFillStep;
         let offset = this._options.drawLines ? this._options.lineLength : 0;
-        return new Dot(this._canvas, offset, x, y, xSpeed, ySpeed, radius, colorS, colorF);
+        return new Dot(this._canvas, offset, x, y, xSpeed, ySpeed, radius, colorS, colorF, opacitySMin, opacitySMax, opacitySStep, opacityFMin, opacityFMax, opacityFStep);
     }
     getDotNumber() {
         return Math.floor(this._canvas.width * this._canvas.height * this._options.density);
@@ -246,7 +258,7 @@ class DotControl {
         const width = this._options.lineWidth;
         for (const pair of pairs) {
             const opacity = (1 - pair[4] / this._options.lineLength) / 2;
-            const color = hexToRgb(this._options.lineColor, opacity);
+            const color = hexToRgba(this._options.lineColor, opacity);
             drawLine(this._canvasCtx, pair[0], pair[1], pair[2], pair[3], width, color);
         }
     }
@@ -280,7 +292,7 @@ class DotControl {
             const dot = item[0];
             const dotParams = dot.getProps();
             const opacity = (1 - item[1] / this._options.onHoverLineRadius);
-            const color = hexToRgb(this._options.lineColor, opacity);
+            const color = hexToRgba(this._options.lineColor, opacity);
             drawLine(this._canvasCtx, position.x, position.y, dotParams.x, dotParams.y, width, color);
         }
     }
@@ -381,14 +393,16 @@ DotsAnimationFactory._optionsDefault = {
     minSpeedY: -0.5,
     maxSpeedY: 0.5,
     blur: 0,
-    stroke: false,
     fill: true,
-    colorsStroke: ["#ffffff"],
     colorsFill: ["#ffffff", "#fff4c1", "#faefdb"],
-    opacityStroke: 1,
     opacityFill: null,
     opacityFillMin: 0,
     opacityFillStep: 0,
+    stroke: false,
+    colorsStroke: ["#ffffff"],
+    opacityStroke: 1,
+    opacityStrokeMin: 0,
+    opacityStrokeStep: 0,
     number: null,
     density: 0.00005,
     drawLines: true,
