@@ -149,11 +149,25 @@ class Dot {
 
     updateColor(): void {    
         if (this._opacitySStep != 0 && this._colorSHex !== null) {
-            
+            this._opacitySCurrent += this._opacitySStep;
+            if (this._opacitySCurrent > this._opacitySMax) {
+                this._opacitySCurrent = this._opacitySMax;
+                this._opacitySStep *= -1
+            } else if (this._opacitySCurrent < this._opacitySMin) {
+                this._opacitySCurrent = this._opacitySMin;
+                this._opacitySStep *= -1;
+            }
             this._colorS = hexToRgba(this._colorSHex, this._opacityFCurrent, 100);
         }
         if (this._opacityFStep != 0 && this._colorFHex !== null) {
-
+            this._opacityFCurrent += this._opacityFStep;
+            if (this._opacityFCurrent > this._opacityFMax) {
+                this._opacityFCurrent = this._opacityFMax;
+                this._opacityFStep *= -1
+            } else if (this._opacityFCurrent < this._opacityFMin) {
+                this._opacityFCurrent = this._opacityFMin;
+                this._opacityFStep *= -1;
+            }
             this._colorF = hexToRgba(this._colorFHex, this._opacityFCurrent, 100);
         }
     }

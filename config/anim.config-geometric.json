@@ -1,7 +1,7 @@
 {
   "expectedFps": 60,
-  "minR": 2,
-  "maxR": 4,
+  "minR": 3,
+  "maxR": 6,
   "minSpeedX": -0.5,
   "maxSpeedX": 0.5,
   "minSpeedY": -0.5,
@@ -11,7 +11,7 @@
   "colorsFill": ["#FFC652", "#FFB652", "#FF9652"],
   "opacityFill": null,
   "opacityFillMin": 10,
-  "opacityFillStep": 0.1,
+  "opacityFillStep": 0.5,
   "stroke": false,
   "colorsStroke": ["#FFC652", "#FFB652", "#FF9652"],
   "opacityStroke": 10,
