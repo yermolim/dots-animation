@@ -39,9 +39,10 @@ Configuration with default values and with comments:
   // color is picked randomly from colors array
   "colorsStroke": ["#FFC652", "#FFB652", "#FF9652"], // hex color strings array
   "colorsFill": ["#FFC652", "#FFB652", "#FF9652"], // hex color strings array
-  // if opacity is set to null it will be applied randomly
-  "opacityStroke": 0.1, // from 0 to 1 where 0 means transparent
-  "opacityFill": null, // from 0 to 1 where 0 means transparent
+  "opacityStroke": 0.1, // null for random opacity | from 0 to 1 where 0 means transparent
+  "opacityFill": null, // null for random opacity | from 0 to 1 where 0 means transparent
+  "opacityFillMin": 0, // from 0 to 1 where 0 means transparent
+  "opacityFillStep": 0, // from 0 to 1 where 0 means no opacity changes per frame, for creating blinking effect
   
   // number option defines maximum number of dots in canvas at the same time
   // regardless of canvas size

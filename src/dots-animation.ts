@@ -4,7 +4,7 @@ function getDistance(x1: number, y1: number, x2: number, y2: number): number {
 }
 
 function getRandomInt(min: number, max: number): number {
-    return Math.floor(Math.random() * (max - min)) + min;
+    return Math.round(Math.random() * (max - min)) + min;
 }
 
 function getRandomArbitrary(min: number, max: number): number {
@@ -55,11 +55,6 @@ interface IPositionObject {
     y: number;
 }
 
-interface IMovableObject {
-    move(): void;
-    moveTo(position: IPositionObject): void;
-}
-
 interface IAnimationControlFactory {
     new(canvas: HTMLCanvasElement, options: IAnimationOptions): IAnimationControl;
 }
@@ -81,7 +76,7 @@ interface IDotProps {
     colorF: string | null;
 }
 
-class Dot implements IMovableObject {
+class Dot {
 
     constructor(private _canvas: HTMLCanvasElement,
         private _offset: number,
@@ -106,7 +101,7 @@ class Dot implements IMovableObject {
         };
     }
 
-    move(): void {
+    updatePosition(): void {
         let offset = Math.max(this._offset, this._r);
         let xMin = -1 * offset;
         let yMin = -1 * offset;
@@ -129,6 +124,10 @@ class Dot implements IMovableObject {
         } else {
             this._y += this._ySpeed;
         }
+    }
+
+    updateColor(): void {
+
     }
 
     moveTo(position: IPositionObject): void {
@@ -170,9 +169,9 @@ class DotControl implements IAnimationControl {
         } else if (this._maxNumber > this._array.length) {
             this.dotFactory(this._maxNumber - this._array.length);
         }
-        // move and draw dots
+        // move dots
         for (const dot of this._array) {
-            dot.move();
+            dot.updatePosition();
         }
         // draw lines
         if (this._options.drawLines) { this.drawLinesBetweenDots(); }
@@ -393,8 +392,7 @@ class DotsAnimation implements IAnimationObject {
             // tslint:disable-next-line:no-unused-expression
             window.requestAnimationFrame(() => { this.draw(); }) ||
                 window.webkitRequestAnimationFrame(() => { this.draw(); });
-        },
-            1000 / this._fps);
+        }, 1000 / this._fps);
     }
     stop() {
         clearInterval(this._timer);
@@ -412,9 +410,16 @@ class DotsAnimation implements IAnimationObject {
     }
     onMouseMove(e: MouseEvent) {
         const dpr = window.devicePixelRatio;
-        const xDpr = (e.clientX - this._parent.offsetLeft + window.pageXOffset) * dpr;
-        const yDpr = (e.clientY - this._parent.offsetTop + window.pageYOffset) * dpr;
 
+        const parentRect = this._parent.getBoundingClientRect();
+        const xRelToDoc = parentRect.left +
+            document.documentElement.scrollLeft;
+        const yRelToDoc = parentRect.top +
+            document.documentElement.scrollTop;
+
+        const xDpr = (e.clientX - xRelToDoc + window.pageXOffset) * dpr;
+        const yDpr = (e.clientY - yRelToDoc + window.pageYOffset) * dpr;
+        
         this._mousePosition.x = xDpr;
         this._mousePosition.y = yDpr;
     }
@@ -437,6 +442,8 @@ interface IAnimationOptions {
     colorsFill: string[], // color array to pick from
     opacityStroke: number | null, // null or fixed from 0 to 1
     opacityFill: number | null, // null or fixed from 0 to 1
+    opacityFillMin: number, // number from 0 to 1
+    opacityFillStep: number, // number from 0 to 1
 
     number: number | null, // null(then "density" field is used) or fixed number. strongly affects performance
     density: number, // positive number. strongly affects performance
@@ -474,6 +481,8 @@ export class DotsAnimationFactory {
         colorsFill: ["#ffffff", "#fff4c1", "#faefdb"],
         opacityStroke: 1,
         opacityFill: null,
+        opacityFillMin: 0,
+        opacityFillStep: 0,
         number: null,
         density: 0.00005,
         drawLines: true,

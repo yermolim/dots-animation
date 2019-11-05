@@ -13,6 +13,8 @@
   "colorsFill": ["#ffffff"],
   "opacityStroke": 1,
   "opacityFill": null,
+  "opacityFillMin": 0,
+  "opacityFillStep": 0,
   "number": null,
   "density": 0.00045,
   "drawLines": false,

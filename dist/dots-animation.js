@@ -12,7 +12,7 @@ function getDistance(x1, y1, x2, y2) {
     return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
 function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
+    return Math.round(Math.random() * (max - min)) + min;
 }
 function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
@@ -67,7 +67,7 @@ class Dot {
             colorF: this._colorF
         };
     }
-    move() {
+    updatePosition() {
         let offset = Math.max(this._offset, this._r);
         let xMin = -1 * offset;
         let yMin = -1 * offset;
@@ -91,6 +91,8 @@ class Dot {
         else {
             this._y += this._ySpeed;
         }
+    }
+    updateColor() {
     }
     moveTo(position) {
         this._x = position.x;
@@ -127,9 +129,9 @@ class DotControl {
         else if (this._maxNumber > this._array.length) {
             this.dotFactory(this._maxNumber - this._array.length);
         }
-        // move and draw dots
+        // move dots
         for (const dot of this._array) {
-            dot.move();
+            dot.updatePosition();
         }
         // draw lines
         if (this._options.drawLines) {
@@ -343,8 +345,13 @@ class DotsAnimation {
     }
     onMouseMove(e) {
         const dpr = window.devicePixelRatio;
-        const xDpr = (e.clientX - this._parent.offsetLeft + window.pageXOffset) * dpr;
-        const yDpr = (e.clientY - this._parent.offsetTop + window.pageYOffset) * dpr;
+        const parentRect = this._parent.getBoundingClientRect();
+        const xRelToDoc = parentRect.left +
+            document.documentElement.scrollLeft;
+        const yRelToDoc = parentRect.top +
+            document.documentElement.scrollTop;
+        const xDpr = (e.clientX - xRelToDoc + window.pageXOffset) * dpr;
+        const yDpr = (e.clientY - yRelToDoc + window.pageYOffset) * dpr;
         this._mousePosition.x = xDpr;
         this._mousePosition.y = yDpr;
     }
@@ -380,6 +387,8 @@ DotsAnimationFactory._optionsDefault = {
     colorsFill: ["#ffffff", "#fff4c1", "#faefdb"],
     opacityStroke: 1,
     opacityFill: null,
+    opacityFillMin: 0,
+    opacityFillStep: 0,
     number: null,
     density: 0.00005,
     drawLines: true,
