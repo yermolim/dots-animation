@@ -185,6 +185,7 @@ class DotControl implements IAnimationControl {
     private readonly _canvas: HTMLCanvasElement;
     private readonly _canvasCtx: CanvasRenderingContext2D;
     private readonly _options: IAnimationOptions;
+    private lastDpr = 0;
 
     constructor(canvas: HTMLCanvasElement, options: IAnimationOptions) {
         this._canvas = canvas;
@@ -197,20 +198,31 @@ class DotControl implements IAnimationControl {
     // interface implementation
     init() {
         if (this._array.length !== 0) { return; }
-        this._maxNumber = this._options.number ? this._options.number : this.getDotNumber();
-        this.dotFactory(this._maxNumber);
+        if (this.lastDpr === 0) {
+            this.lastDpr = window.devicePixelRatio;
+        }
+        this.dotFactory(this.getDotNumber());
     }
 
     draw(mousePosition: IPositionObject, isClicked: boolean) {
         // clear canvas
         this._canvasCtx.clearRect(0, 0, this._canvas.width, this._canvas.height);
-        // update dots number
-        this._maxNumber = this._options.number ? this._options.number : this.getDotNumber();
+
+        // if dpr changed (window moved to other display) clear dots array
+        const dpr = window.devicePixelRatio;
+        if (dpr !== this.lastDpr) {
+            this._array.length = 0;
+        }
+        this.lastDpr = dpr;
+
+        // update dots number        
+        this._maxNumber = this.getDotNumber();
         if (this._maxNumber < this._array.length) {
             this.deleteEldestDots(this._array.length - this._maxNumber);
         } else if (this._maxNumber > this._array.length) {
             this.dotFactory(this._maxNumber - this._array.length);
         }
+
         // move dots
         for (const dot of this._array) {
             dot.updatePosition();
@@ -218,22 +230,31 @@ class DotControl implements IAnimationControl {
         }
         // draw lines
         if (this._options.drawLines) { this.drawLinesBetweenDots(); }
+
+        // handle mouse actions
+        var ratio = this._options.dprDependentDimensions ? dpr : 1;
         // handle mouse move
         if (this._options.actionOnHover) {
-            if (this._options.onHoverDrawLines) { this.drawLinesToCircleCenter(mousePosition); }
+            if (this._options.onHoverDrawLines) { 
+                this.drawLinesToCircleCenter(mousePosition, this._options.onHoverLineRadius *ratio, 
+                    this._options.lineWidth, this._options.lineColor); 
+            }
             if (this._options.onHoverMove) {
                 this.moveDotsOutOfCircle(
-                    mousePosition, this._options.onHoverMoveRadius);
+                    mousePosition, this._options.onHoverMoveRadius * ratio);
             }
         }
         // handle mouse click
         if (isClicked && this._options.actionOnClick) {
             if (this._options.onClickMove) {
                 this.moveDotsOutOfCircle(
-                    mousePosition, this._options.onClickMoveRadius);
+                    mousePosition, this._options.onClickMoveRadius * ratio);
             }
-            if (this._options.onClickCreate) { this.dotFactory(this._options.onClickCreateNDots, mousePosition); }
+            if (this._options.onClickCreate) { 
+                this.dotFactory(this._options.onClickCreateNDots, mousePosition); 
+            }
         }
+
         // draw dots
         for (const dot of this._array) {
             const params = dot.getProps();
@@ -262,10 +283,12 @@ class DotControl implements IAnimationControl {
             x = getRandomInt(0, this._canvas.width);
             y = getRandomInt(0, this._canvas.height);
         }
-        // required params
-        const xSpeed = getRandomArbitrary(this._options.minSpeedX, this._options.maxSpeedX);
-        const ySpeed = getRandomArbitrary(this._options.minSpeedY, this._options.maxSpeedY);
-        const radius = getRandomInt(this._options.minR, this._options.maxR);
+        // dimensions params
+        const dimRatio = this._options.dprDependentDimensions ? window.devicePixelRatio : 1;
+        let offset = this._options.drawLines ? this._options.lineLength * dimRatio : 0;
+        const xSpeed = getRandomArbitrary(this._options.minSpeedX, this._options.maxSpeedX) * dimRatio;
+        const ySpeed = getRandomArbitrary(this._options.minSpeedY, this._options.maxSpeedY) * dimRatio;
+        const radius = getRandomInt(this._options.minR, this._options.maxR) * dimRatio;
         // fill/stroke color params
         let colorS: string | null = null;
         let colorF: string | null = null;
@@ -286,8 +309,6 @@ class DotControl implements IAnimationControl {
         Math.max(opacityFMin, this._options.opacityFill) :
         getRandomInt(opacityFMin, 100);
         let opacityFStep = this._options.opacityFillStep;
-
-        let offset = this._options.drawLines ? this._options.lineLength : 0;
         return new Dot(this._canvas, offset, 
             x, y, xSpeed, ySpeed, 
             radius, 
@@ -297,7 +318,9 @@ class DotControl implements IAnimationControl {
     }
 
     getDotNumber(): number {
-        return Math.floor(this._canvas.width * this._canvas.height * this._options.density);
+        const densityRatio = this._options.dprDependentDensity ? window.devicePixelRatio : 1;
+        const calculatedNumber = Math.floor(this._canvas.width * this._canvas.height * this._options.density / densityRatio);
+        return this._options.number ? this._options.number : calculatedNumber;
     }
 
     deleteEldestDots(number: number): void {
@@ -308,7 +331,7 @@ class DotControl implements IAnimationControl {
     }
 
     // lines actions
-    getCloseDotPairs(): number[][] {
+    getCloseDotPairs(maxDistance: number): number[][] {
         const dotArray = this._array;
         const closePairs: number[][] = [];
         for (let i = 0; i < dotArray.length; i++) {
@@ -316,7 +339,7 @@ class DotControl implements IAnimationControl {
                 const dotIParams = dotArray[i].getProps();
                 const dotJParams = dotArray[j].getProps();
                 const distance = Math.floor(getDistance(dotIParams.x, dotIParams.y, dotJParams.x, dotJParams.y));
-                if (distance <= this._options.lineLength) {
+                if (distance <= maxDistance) {
                     closePairs.push([dotIParams.x, dotIParams.y, dotJParams.x, dotJParams.y, distance]);
                 }
             }
@@ -326,10 +349,12 @@ class DotControl implements IAnimationControl {
     }
 
     drawLinesBetweenDots(): void {
-        const pairs = this.getCloseDotPairs();
+        const ratio = this._options.dprDependentDimensions ? window.devicePixelRatio : 1;
+        const lineLength = this._options.lineLength * ratio;
+        const pairs = this.getCloseDotPairs(lineLength);
         const width = this._options.lineWidth;
         for (const pair of pairs) {
-            const opacity = (1 - pair[4] / this._options.lineLength) / 2;
+            const opacity = (1 - pair[4] / lineLength) / 2;
             const color = hexToRgba(this._options.lineColor, opacity);
             drawLine(this._canvasCtx, pair[0], pair[1], pair[2], pair[3], width, color);
         }
@@ -360,15 +385,15 @@ class DotControl implements IAnimationControl {
         }
     }
 
-    drawLinesToCircleCenter(position: IPositionObject): void {
-        const dotsInCircle = this.getDotsInsideCircle(position, this._options.onHoverLineRadius);
-        const width = this._options.lineWidth;
+    drawLinesToCircleCenter(position: IPositionObject, radius: number, 
+        lineWidth: number, lineColor: string ): void {
+        const dotsInCircle = this.getDotsInsideCircle(position, radius);
         for (const item of dotsInCircle) {
             const dot = item[0];
             const dotParams = dot.getProps();
-            const opacity = (1 - item[1] / this._options.onHoverLineRadius);
-            const color = hexToRgba(this._options.lineColor, opacity);
-            drawLine(this._canvasCtx, position.x, position.y, dotParams.x, dotParams.y, width, color);
+            const opacity = (1 - item[1] / radius);
+            const color = hexToRgba(lineColor, opacity);
+            drawLine(this._canvasCtx, position.x, position.y, dotParams.x, dotParams.y, lineWidth, color);
         }
     }
 }
@@ -432,7 +457,7 @@ class DotsAnimation implements IAnimationObject {
         window.addEventListener("mousemove", this.onMouseMove.bind(this));
         window.addEventListener("click", this.onClick.bind(this));
         this._timer = window.setInterval(() => {
-            // tslint:disable-next-line:no-unused-expression
+            // tslint:disable-next-lineLength = this._options.dprDependentDimensions ?:no-unused-expression
             window.requestAnimationFrame(() => { this.draw(); }) ||
                 window.webkitRequestAnimationFrame(() => { this.draw(); });
         }, 1000 / this._fps);
@@ -471,6 +496,12 @@ class DotsAnimation implements IAnimationObject {
 interface IAnimationOptions {
     expectedFps: number, // positive integer 
 
+    number: number | null, // null(then "density" field is used) or fixed number. strongly affects performance
+    density: number, // positive number. strongly affects performance
+
+    dprDependentDensity: boolean,
+    dprDependentDimensions: boolean,
+
     minR: number, // positive number
     maxR: number, // positive number
     minSpeedX: number,
@@ -492,9 +523,6 @@ interface IAnimationOptions {
     opacityFillMin: number, // number from 0 to 100
     opacityFillStep: number, // number from 0 to 100
 
-    number: number | null, // null(then "density" field is used) or fixed number. strongly affects performance
-    density: number, // positive number. strongly affects performance
-
     drawLines: boolean,
     lineColor: string,
     lineLength: number,
@@ -515,6 +543,10 @@ interface IAnimationOptions {
 export class DotsAnimationFactory {
     private static _optionsDefault: IAnimationOptions = {
         expectedFps: 60,
+        number: null,
+        density: 0.00005,
+        dprDependentDensity: true,
+        dprDependentDimensions: true,
         minR: 1,
         maxR: 5,
         minSpeedX: -0.5,
@@ -532,8 +564,6 @@ export class DotsAnimationFactory {
         opacityStroke: 1,
         opacityStrokeMin: 0,
         opacityStrokeStep: 0,
-        number: null,
-        density: 0.00005,
         drawLines: true,
         lineColor: "#717892",
         lineLength: 150,

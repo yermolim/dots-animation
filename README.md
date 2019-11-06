@@ -20,8 +20,18 @@ Configuration with default values and with comments:
 {
   // more fps - faster and smoother animation, highly affects performance
   // fps stability depends on client hardware
-  "expectedFps": 60, // positive integer
-  
+  "expectedFps": 60, // positive integer  
+
+  // number option defines maximum number of dots in canvas at the same time
+  // regardless of canvas size
+  // if number option is not null, density option will be ignored
+  "number": null, // null or positive integer, affects performance
+  // density option defines maximum number of dots per canvas pixel
+  "density": 0.00010, // positive integer, affects performance
+
+  "dprDependentDensity": true, // use dpr in density calculation  
+  "drpDependentDimensions": true, // use dpr in size and speed calculations
+
   // dots radius is random value between minR and MaxR
   "minR": 1, // only positive values, it's desirable to use integers only
   "maxR": 3, // only positive values, it's desirable to use integers only
@@ -46,13 +56,6 @@ Configuration with default values and with comments:
   "opacityStroke": 10, // null for random opacity | from 0 to 100 where 0 means transparent
   "opacityStrokeMin": 0, // from 0 to 100 where 0 means transparent
   "opacityStrokeStep": 0, // from 0 to 100 where 0 means no opacity changes per frame, for creating blinking effect
-  
-  // number option defines maximum number of dots in canvas at the same time
-  // regardless of canvas size
-  // if number option is not null, density option will be ignored
-  "number": null, // null or positive integer, affects performance
-  // density option defines maximum number of dots per canvas pixel
-  "density": 0.00010, // positive integer, affects performance
   
   "drawLines": true, // enable drawing lines between adjacent dots, most performance decreasing feature
   "lineColor": "#6566A7", // hex color string

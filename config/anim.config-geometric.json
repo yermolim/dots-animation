@@ -1,5 +1,9 @@
 {
   "expectedFps": 60,
+  "number": null,
+  "density": 0.00010,
+  "dprDependentDensity": true,
+  "dprDependentDimensions": true,
   "minR": 3,
   "maxR": 6,
   "minSpeedX": -0.5,
@@ -17,8 +21,6 @@
   "opacityStroke": 10,
   "opacityStrokeMin": 0,
   "opacityStrokeStep": 0,
-  "number": null,
-  "density": 0.00010,
   "drawLines": true,
   "lineColor": "#6566A7",
   "lineLength": 200,
