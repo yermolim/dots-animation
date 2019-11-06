@@ -470,14 +470,15 @@ class DotsAnimation implements IAnimationObject {
 
     // action methods
     start() {     
-        this._animationControl.setPauseState(false); 
-        window.addEventListener("mousemove", this.onMouseMove.bind(this));
-        window.addEventListener("click", this.onClick.bind(this));
+        this._animationControl.setPauseState(false);
+        if (this._timer !== undefined) { return; }
         this._timer = window.setInterval(() => {
             // tslint:disable-next-lineLength = this._options.dprDependentDimensions ?:no-unused-expression
             window.requestAnimationFrame(() => { this.draw(); }) ||
                 window.webkitRequestAnimationFrame(() => { this.draw(); });
-        }, 1000 / this._fps);
+        }, 1000 / this._fps); 
+        window.addEventListener("mousemove", this.onMouseMove.bind(this));
+        window.addEventListener("click", this.onClick.bind(this));
     }
 
     pause() {       
