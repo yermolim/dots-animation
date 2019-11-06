@@ -48,6 +48,7 @@ function drawLine(ctx: CanvasRenderingContext2D,
 export interface IAnimationObject {
     start(): void;
     stop(): void;
+    pause(): void;
 }
 
 interface IPositionObject {
@@ -60,7 +61,7 @@ interface IAnimationControlFactory {
 }
 
 interface IAnimationControl {
-    init(): void;
+    setPauseState(pauseState: boolean) : void;
     draw(mousePosition?: IPositionObject, isMouseClicked?: boolean): void;
 }
 
@@ -179,13 +180,13 @@ class Dot {
 }
 
 class DotControl implements IAnimationControl {
-
+    private _pauseState = false;
     private _array: Dot[] = [];
     private _maxNumber = 100;
+    private _lastDpr = 0;
+    private readonly _options: IAnimationOptions;
     private readonly _canvas: HTMLCanvasElement;
     private readonly _canvasCtx: CanvasRenderingContext2D;
-    private readonly _options: IAnimationOptions;
-    private lastDpr = 0;
 
     constructor(canvas: HTMLCanvasElement, options: IAnimationOptions) {
         this._canvas = canvas;
@@ -195,41 +196,34 @@ class DotControl implements IAnimationControl {
         this._options = options;
     }
 
-    // interface implementation
-    init() {
-        if (this._array.length !== 0) { return; }
-        if (this.lastDpr === 0) {
-            this.lastDpr = window.devicePixelRatio;
-        }
-        this.dotFactory(this.getDotNumber());
+    setPauseState(pauseState: boolean) {
+        this._pauseState = pauseState;
     }
 
     draw(mousePosition: IPositionObject, isClicked: boolean) {
-        // clear canvas
-        this._canvasCtx.clearRect(0, 0, this._canvas.width, this._canvas.height);
-
         // if dpr changed (window moved to other display) clear dots array
         const dpr = window.devicePixelRatio;
-        if (dpr !== this.lastDpr) {
+        if (dpr !== this._lastDpr) {
             this._array.length = 0;
         }
-        this.lastDpr = dpr;
+        this._lastDpr = dpr;        
+        
+        // update dots number
+        const isNumberUpdated = this.updateDotNumber();
 
-        // update dots number        
-        this._maxNumber = this.getDotNumber();
-        if (this._maxNumber < this._array.length) {
-            this.deleteEldestDots(this._array.length - this._maxNumber);
-        } else if (this._maxNumber > this._array.length) {
-            this.dotFactory(this._maxNumber - this._array.length);
+        // return if paused and no resize events fired
+        if (!isNumberUpdated && this._pauseState && !this.isCanvasEmpty()) {
+            return;
         }
+
+        // clear canvas
+        this._canvasCtx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
         // move dots
         for (const dot of this._array) {
             dot.updatePosition();
             dot.updateColor();
         }
-        // draw lines
-        if (this._options.drawLines) { this.drawLinesBetweenDots(); }
 
         // handle mouse actions
         var ratio = this._options.dprDependentDimensions ? dpr : 1;
@@ -260,6 +254,17 @@ class DotControl implements IAnimationControl {
             const params = dot.getProps();
             drawCircle(this._canvasCtx, params.x, params.y, params.r, params.colorS, params.colorF);
         }
+        // draw lines
+        if (this._options.drawLines) { 
+            this.drawLinesBetweenDots(); 
+        }
+    }
+
+    isCanvasEmpty()
+    {
+        return !this._canvasCtx
+            .getImageData(0, 0, this._canvas.width, this._canvas.height)
+            .data.some(channel => channel !== 0);
     }
 
     // creation actions
@@ -317,12 +322,6 @@ class DotControl implements IAnimationControl {
             opacityFMin, opacityFMax, opacityFStep);
     }
 
-    getDotNumber(): number {
-        const densityRatio = this._options.dprDependentDensity ? window.devicePixelRatio : 1;
-        const calculatedNumber = Math.floor(this._canvas.width * this._canvas.height * this._options.density / densityRatio);
-        return this._options.number ? this._options.number : calculatedNumber;
-    }
-
     deleteEldestDots(number: number): void {
         this._array = this._array.slice(number);
         for (let i = 0; i < number; i++) {
@@ -330,7 +329,25 @@ class DotControl implements IAnimationControl {
         }
     }
 
-    // lines actions
+    getDotNumber(): number {
+        const densityRatio = this._options.dprDependentDensity ? window.devicePixelRatio : 1;
+        const calculatedNumber = Math.floor(this._canvas.width * this._canvas.height * this._options.density / densityRatio);
+        return this._options.number ? this._options.number : calculatedNumber;
+    }
+
+    updateDotNumber(): boolean {       
+        this._maxNumber = this.getDotNumber();
+        if (this._maxNumber < this._array.length) {
+            this.deleteEldestDots(this._array.length - this._maxNumber);
+            return true;
+        } else if (this._maxNumber > this._array.length) {
+            this.dotFactory(this._maxNumber - this._array.length);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     getCloseDotPairs(maxDistance: number): number[][] {
         const dotArray = this._array;
         const closePairs: number[][] = [];
@@ -348,19 +365,6 @@ class DotControl implements IAnimationControl {
         return closePairs;
     }
 
-    drawLinesBetweenDots(): void {
-        const ratio = this._options.dprDependentDimensions ? window.devicePixelRatio : 1;
-        const lineLength = this._options.lineLength * ratio;
-        const pairs = this.getCloseDotPairs(lineLength);
-        const width = this._options.lineWidth;
-        for (const pair of pairs) {
-            const opacity = (1 - pair[4] / lineLength) / 2;
-            const color = hexToRgba(this._options.lineColor, opacity);
-            drawLine(this._canvasCtx, pair[0], pair[1], pair[2], pair[3], width, color);
-        }
-    }
-
-    // mouse events actions
     getDotsInsideCircle(position: IPositionObject, radius: number): [Dot, number][] {
         const dotsInCircle: [Dot, number][] = [];
         for (const dot of this._array) {
@@ -382,6 +386,18 @@ class DotControl implements IAnimationControl {
             const x = (dotParams.x - position.x) * (radius / distance) + position.x;
             const y = (dotParams.y - position.y) * (radius / distance) + position.y;
             dot.moveTo({ x: x, y: y });
+        }
+    }
+
+    drawLinesBetweenDots(): void {
+        const ratio = this._options.dprDependentDimensions ? window.devicePixelRatio : 1;
+        const lineLength = this._options.lineLength * ratio;
+        const pairs = this.getCloseDotPairs(lineLength);
+        const width = this._options.lineWidth;
+        for (const pair of pairs) {
+            const opacity = (1 - pair[4] / lineLength) / 2;
+            const color = hexToRgba(this._options.lineColor, opacity);
+            drawLine(this._canvasCtx, pair[0], pair[1], pair[2], pair[3], width, color);
         }
     }
 
@@ -446,14 +462,15 @@ class DotsAnimation implements IAnimationObject {
         this._canvas.width = this._parent.offsetWidth * dpr;
         this._canvas.height = this._parent.offsetHeight * dpr;
     }
+
     draw() {
         this._animationControl.draw(this._mousePosition, this._isMouseClicked);
         this._isMouseClicked = false;
     }
 
     // action methods
-    start() {
-        this._animationControl.init();
+    start() {     
+        this._animationControl.setPauseState(false); 
         window.addEventListener("mousemove", this.onMouseMove.bind(this));
         window.addEventListener("click", this.onClick.bind(this));
         this._timer = window.setInterval(() => {
@@ -462,6 +479,11 @@ class DotsAnimation implements IAnimationObject {
                 window.webkitRequestAnimationFrame(() => { this.draw(); });
         }, 1000 / this._fps);
     }
+
+    pause() {       
+        this._animationControl.setPauseState(true); 
+    }
+
     stop() {
         clearInterval(this._timer);
         this._timer = undefined;

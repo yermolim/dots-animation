@@ -137,9 +137,10 @@ class Dot {
 }
 class DotControl {
     constructor(canvas, options) {
+        this._pauseState = false;
         this._array = [];
         this._maxNumber = 100;
-        this.lastDpr = 0;
+        this._lastDpr = 0;
         this._canvas = canvas;
         let canvasCtx = this._canvas.getContext("2d");
         if (canvasCtx === null)
@@ -147,41 +148,28 @@ class DotControl {
         this._canvasCtx = canvasCtx;
         this._options = options;
     }
-    // interface implementation
-    init() {
-        if (this._array.length !== 0) {
-            return;
-        }
-        if (this.lastDpr === 0) {
-            this.lastDpr = window.devicePixelRatio;
-        }
-        this.dotFactory(this.getDotNumber());
+    setPauseState(pauseState) {
+        this._pauseState = pauseState;
     }
     draw(mousePosition, isClicked) {
-        // clear canvas
-        this._canvasCtx.clearRect(0, 0, this._canvas.width, this._canvas.height);
         // if dpr changed (window moved to other display) clear dots array
         const dpr = window.devicePixelRatio;
-        if (dpr !== this.lastDpr) {
+        if (dpr !== this._lastDpr) {
             this._array.length = 0;
         }
-        this.lastDpr = dpr;
-        // update dots number        
-        this._maxNumber = this.getDotNumber();
-        if (this._maxNumber < this._array.length) {
-            this.deleteEldestDots(this._array.length - this._maxNumber);
+        this._lastDpr = dpr;
+        // update dots number
+        const isNumberUpdated = this.updateDotNumber();
+        // return if paused and no resize events fired
+        if (!isNumberUpdated && this._pauseState && !this.isCanvasEmpty()) {
+            return;
         }
-        else if (this._maxNumber > this._array.length) {
-            this.dotFactory(this._maxNumber - this._array.length);
-        }
+        // clear canvas
+        this._canvasCtx.clearRect(0, 0, this._canvas.width, this._canvas.height);
         // move dots
         for (const dot of this._array) {
             dot.updatePosition();
             dot.updateColor();
-        }
-        // draw lines
-        if (this._options.drawLines) {
-            this.drawLinesBetweenDots();
         }
         // handle mouse actions
         var ratio = this._options.dprDependentDimensions ? dpr : 1;
@@ -208,6 +196,15 @@ class DotControl {
             const params = dot.getProps();
             drawCircle(this._canvasCtx, params.x, params.y, params.r, params.colorS, params.colorF);
         }
+        // draw lines
+        if (this._options.drawLines) {
+            this.drawLinesBetweenDots();
+        }
+    }
+    isCanvasEmpty() {
+        return !this._canvasCtx
+            .getImageData(0, 0, this._canvas.width, this._canvas.height)
+            .data.some(channel => channel !== 0);
     }
     // creation actions
     dotFactory(number, position = null) {
@@ -258,18 +255,31 @@ class DotControl {
         let opacityFStep = this._options.opacityFillStep;
         return new Dot(this._canvas, offset, x, y, xSpeed, ySpeed, radius, colorS, colorF, opacitySMin, opacitySMax, opacitySStep, opacityFMin, opacityFMax, opacityFStep);
     }
-    getDotNumber() {
-        const densityRatio = this._options.dprDependentDensity ? window.devicePixelRatio : 1;
-        const calculatedNumber = Math.floor(this._canvas.width * this._canvas.height * this._options.density / densityRatio);
-        return this._options.number ? this._options.number : calculatedNumber;
-    }
     deleteEldestDots(number) {
         this._array = this._array.slice(number);
         for (let i = 0; i < number; i++) {
             this._array.shift();
         }
     }
-    // lines actions
+    getDotNumber() {
+        const densityRatio = this._options.dprDependentDensity ? window.devicePixelRatio : 1;
+        const calculatedNumber = Math.floor(this._canvas.width * this._canvas.height * this._options.density / densityRatio);
+        return this._options.number ? this._options.number : calculatedNumber;
+    }
+    updateDotNumber() {
+        this._maxNumber = this.getDotNumber();
+        if (this._maxNumber < this._array.length) {
+            this.deleteEldestDots(this._array.length - this._maxNumber);
+            return true;
+        }
+        else if (this._maxNumber > this._array.length) {
+            this.dotFactory(this._maxNumber - this._array.length);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
     getCloseDotPairs(maxDistance) {
         const dotArray = this._array;
         const closePairs = [];
@@ -285,18 +295,6 @@ class DotControl {
         }
         return closePairs;
     }
-    drawLinesBetweenDots() {
-        const ratio = this._options.dprDependentDimensions ? window.devicePixelRatio : 1;
-        const lineLength = this._options.lineLength * ratio;
-        const pairs = this.getCloseDotPairs(lineLength);
-        const width = this._options.lineWidth;
-        for (const pair of pairs) {
-            const opacity = (1 - pair[4] / lineLength) / 2;
-            const color = hexToRgba(this._options.lineColor, opacity);
-            drawLine(this._canvasCtx, pair[0], pair[1], pair[2], pair[3], width, color);
-        }
-    }
-    // mouse events actions
     getDotsInsideCircle(position, radius) {
         const dotsInCircle = [];
         for (const dot of this._array) {
@@ -317,6 +315,17 @@ class DotControl {
             const x = (dotParams.x - position.x) * (radius / distance) + position.x;
             const y = (dotParams.y - position.y) * (radius / distance) + position.y;
             dot.moveTo({ x: x, y: y });
+        }
+    }
+    drawLinesBetweenDots() {
+        const ratio = this._options.dprDependentDimensions ? window.devicePixelRatio : 1;
+        const lineLength = this._options.lineLength * ratio;
+        const pairs = this.getCloseDotPairs(lineLength);
+        const width = this._options.lineWidth;
+        for (const pair of pairs) {
+            const opacity = (1 - pair[4] / lineLength) / 2;
+            const color = hexToRgba(this._options.lineColor, opacity);
+            drawLine(this._canvasCtx, pair[0], pair[1], pair[2], pair[3], width, color);
         }
     }
     drawLinesToCircleCenter(position, radius, lineWidth, lineColor) {
@@ -366,7 +375,7 @@ class DotsAnimation {
     }
     // action methods
     start() {
-        this._animationControl.init();
+        this._animationControl.setPauseState(false);
         window.addEventListener("mousemove", this.onMouseMove.bind(this));
         window.addEventListener("click", this.onClick.bind(this));
         this._timer = window.setInterval(() => {
@@ -374,6 +383,9 @@ class DotsAnimation {
             window.requestAnimationFrame(() => { this.draw(); }) ||
                 window.webkitRequestAnimationFrame(() => { this.draw(); });
         }, 1000 / this._fps);
+    }
+    pause() {
+        this._animationControl.setPauseState(true);
     }
     stop() {
         clearInterval(this._timer);

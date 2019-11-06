@@ -12,6 +12,8 @@ DotsAnimationFactory.createDotsAnimation( // create IAnimationObject
     "./config/anim.config-geometric.json" // path to configuration json
     ).then((animationCanvas) => {
         animationCanvas.start(); // start amination
+        //animationCanvas.pause(); // pause amination
+        //animationCanvas.stop(); // stop amination
     });
 ```
 # Configuration file
