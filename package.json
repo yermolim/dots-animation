@@ -1,6 +1,6 @@
 {
   "name": "dots-animation",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "module for filling your html container with fancy responsive dots animation",
   "main": "./dist/dots-animation.js",
   "scripts": {
