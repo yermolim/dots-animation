@@ -249,14 +249,14 @@ class DotControl implements IAnimationControl {
             }
         }
 
+        // draw lines
+        if (this._options.drawLines) { 
+            this.drawLinesBetweenDots(); 
+        }
         // draw dots
         for (const dot of this._array) {
             const params = dot.getProps();
             drawCircle(this._canvasCtx, params.x, params.y, params.r, params.colorS, params.colorF);
-        }
-        // draw lines
-        if (this._options.drawLines) { 
-            this.drawLinesBetweenDots(); 
         }
     }
 
