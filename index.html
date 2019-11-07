@@ -43,21 +43,23 @@
     <script type="module">
         import { DotsAnimationFactory } from "./dist/dots-animation.js";
 
-        DotsAnimationFactory.createDotsAnimation( // create IAnimationObject
+        // fetch options using path to configuration json
+        DotsAnimationFactory.fetchOptions("./config/anim.config-geometric.json").then((geometricOptions) => {
+            DotsAnimationFactory.createAnimation( // create IAnimationObject
             "#container-geometric", // id of existing HTMLElement (container for canvas)
             "canvas-geometric", // id for new HTMLCanvasElement 
-            "./config/anim.config-geometric.json" // path to configuration json
-            ).then((animationCanvas) => {
-                animationCanvas.start(); // start animation
-            });
-            
-            DotsAnimationFactory.createDotsAnimation(
+            geometricOptions
+            ).start();
+        });
+
+        DotsAnimationFactory.fetchOptions("./config/anim.config-snow.json").then((snowOptions) => {
+            DotsAnimationFactory.createAnimation(
             "#container-snow", 
             "canvas-snow", 
-            "./config/anim.config-snow.json"
-            ).then((animationCanvas) => {
-                animationCanvas.start();
-            });
+            snowOptions            
+            ).start();
+        });
+
     </script>    
 </body>
 </html>

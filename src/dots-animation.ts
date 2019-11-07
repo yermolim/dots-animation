@@ -516,7 +516,7 @@ class DotsAnimation implements IAnimationObject {
     }
 }
 
-interface IAnimationOptions {
+export interface IAnimationOptions {
     expectedFps: number, // positive integer 
 
     number: number | null, // null(then "density" field is used) or fixed number. strongly affects performance
@@ -603,13 +603,18 @@ export class DotsAnimationFactory {
         onHoverLineRadius: 150
     };
 
-    static async createDotsAnimation(containerSelector: string, canvasId: string, optionsJsonPath: string): Promise<IAnimationObject> {
+    static async fetchOptions(optionsJsonPath: string): Promise<IAnimationOptions>
+    {
         let options: IAnimationOptions = DotsAnimationFactory._optionsDefault;
         const response = await fetch(optionsJsonPath);
         if (response.ok) {
             const text = await response.text();
             options = JSON.parse(text);
         }
+        return Promise.resolve(options);
+    }
+
+    static createAnimation(containerSelector: string, canvasId: string, options: IAnimationOptions ): IAnimationObject {
         const container = document.querySelector(containerSelector);
         if (container === null) throw new Error("Container is null");
         return new DotsAnimation(container as HTMLElement, canvasId, options, DotControl);

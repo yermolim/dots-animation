@@ -6,15 +6,16 @@ Use code below to apply animation to your container (two default config jsons ar
 ```javascript
 import { DotsAnimationFactory }  from "./dist/dots-animation.js";
 
-DotsAnimationFactory.createDotsAnimation( // create IAnimationObject
-    "#container-geometric", // id of existing HTMLElement (container for canvas)
-    "canvas-geometric", // id for new HTMLCanvasElement 
-    "./config/anim.config-geometric.json" // path to configuration json
-    ).then((animationCanvas) => {
-        animationCanvas.start(); // start amination
-        //animationCanvas.pause(); // pause amination
-        //animationCanvas.stop(); // stop amination
-    });
+// fetch options using path to configuration json
+DotsAnimationFactory.fetchOptions("./config/anim.config-geometric.json").then((geometricOptions) => {
+    const animation = DotsAnimationFactory.createDotsAnimation( // create IAnimationObject
+      "#container-geometric", // id of existing HTMLElement (container for canvas)
+      "canvas-geometric", // id for new HTMLCanvasElement 
+      geometricOptions); // pass fetched options
+    animation.start(); // start amination
+    //animation.pause(); // pause amination
+    //animation.stop(); // stop amination
+});
 ```
 # Configuration file
 Configuration with default values and with comments:

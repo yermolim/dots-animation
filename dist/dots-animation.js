@@ -417,7 +417,7 @@ class DotsAnimation {
     }
 }
 export class DotsAnimationFactory {
-    static createDotsAnimation(containerSelector, canvasId, optionsJsonPath) {
+    static fetchOptions(optionsJsonPath) {
         return __awaiter(this, void 0, void 0, function* () {
             let options = DotsAnimationFactory._optionsDefault;
             const response = yield fetch(optionsJsonPath);
@@ -425,11 +425,14 @@ export class DotsAnimationFactory {
                 const text = yield response.text();
                 options = JSON.parse(text);
             }
-            const container = document.querySelector(containerSelector);
-            if (container === null)
-                throw new Error("Container is null");
-            return new DotsAnimation(container, canvasId, options, DotControl);
+            return Promise.resolve(options);
         });
+    }
+    static createAnimation(containerSelector, canvasId, options) {
+        const container = document.querySelector(containerSelector);
+        if (container === null)
+            throw new Error("Container is null");
+        return new DotsAnimation(container, canvasId, options, DotControl);
     }
 }
 DotsAnimationFactory._optionsDefault = {

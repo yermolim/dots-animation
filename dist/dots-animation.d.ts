@@ -3,7 +3,46 @@ export interface IAnimationObject {
     stop(): void;
     pause(): void;
 }
+export interface IAnimationOptions {
+    expectedFps: number;
+    number: number | null;
+    density: number;
+    dprDependentDensity: boolean;
+    dprDependentDimensions: boolean;
+    minR: number;
+    maxR: number;
+    minSpeedX: number;
+    maxSpeedX: number;
+    minSpeedY: number;
+    maxSpeedY: number;
+    blur: number;
+    stroke: boolean;
+    colorsStroke: string[];
+    opacityStroke: number | null;
+    opacityStrokeMin: number;
+    opacityStrokeStep: number;
+    fill: boolean;
+    colorsFill: string[];
+    opacityFill: number | null;
+    opacityFillMin: number;
+    opacityFillStep: number;
+    drawLines: boolean;
+    lineColor: string;
+    lineLength: number;
+    lineWidth: number;
+    actionOnClick: boolean;
+    actionOnHover: boolean;
+    onClickCreate: boolean;
+    onClickMove: boolean;
+    onHoverMove: boolean;
+    onHoverDrawLines: boolean;
+    onClickCreateNDots: number;
+    onClickMoveRadius: number;
+    onHoverMoveRadius: number;
+    onHoverLineRadius: number;
+}
 export declare class DotsAnimationFactory {
     private static _optionsDefault;
-    static createDotsAnimation(containerSelector: string, canvasId: string, optionsJsonPath: string): Promise<IAnimationObject>;
+    static fetchOptions(optionsJsonPath: string): Promise<IAnimationOptions>;
+    static createAnimation(containerSelector: string, canvasId: string, options: IAnimationOptions): IAnimationObject;
 }
