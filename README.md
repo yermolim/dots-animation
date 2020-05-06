@@ -1,8 +1,8 @@
 # Dots-animation
 <p align="left">
-    <a href="https://www.npmjs.com/package/ts-gantt"><img
-            src="https://img.shields.io/npm/v/ts-gantt" alt="Npm"></a>
-    <a href="https://github.com/yermolim/ts-gantt/blob/master/LICENSE"><img
+    <a href="https://www.npmjs.com/package/dots-animation"><img
+            src="https://img.shields.io/npm/v/dots-animation" alt="Npm"></a>
+    <a href="https://github.com/yermolim/dots-animation/blob/master/LICENSE"><img
             src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-round" alt="License"></a>
     <br>
 </p>
@@ -10,13 +10,14 @@ Simple module for adding to your html background container a canvas with fancy r
 
 ### Current features
 <ul>
-    <li>canvas based</li>
     <li>highly customizable</li>
     <li>high dpi screens support</li>
     <li>mouse interaction</li>
     <li>auto-resize</li>
     <li>light codebase: no dependencies</li>
     <li>umd and esm bundles</li>
+    <li>written in typescript</li>
+    <li>canvas based</li>
 </ul>
 
 ## Getting started
