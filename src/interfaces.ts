@@ -3,6 +3,7 @@ interface IAnimationObject {
   stop(): void;
   pause(): void;
 }
+
 type IAnimationControlFactory = 
     new(canvas: HTMLCanvasElement, options: IAnimationOptions) => IAnimationControl;
 
