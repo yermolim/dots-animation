@@ -473,4 +473,4 @@ class DotsAnimationFactory {
   }
 }
 
-export { IAnimationOptions, IAnimationControl, DotsAnimationFactory };
+export { IAnimationOptions, IAnimationObject, DotsAnimationFactory };

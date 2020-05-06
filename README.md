@@ -31,12 +31,12 @@ npm install dots-animation
 ```
 
 ```javascript
-import { DotsAnimationFactory, IAnimationOptions, IAnimationControl } from "dots-animation";
+import { DotsAnimationFactory, IAnimationOptions, IAnimationObject } from "dots-animation";
 
 const options = {}; // provide your options implementing 'IAnimationOptions' interface
 const animationControl = DotsAnimationFactory
   .createAnimation("#container-selector", "id-for-new-canvas", options);
-animationControl.start(); // 'stop' and 'pause' methods are also provided
+animationControl.start(); // 'stop' and 'pause' methods are also provided in 'IAnimationObject'
 ```
 
 #### Or using CDN
