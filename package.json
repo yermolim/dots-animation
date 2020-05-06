@@ -20,13 +20,13 @@
     "customizable"
   ],
   "author": "Volodymyr Yermolenko <yermolim@gmail.com>",
-  "license": "ASL",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/yermolim/dots-animation/issues"
   },
   "homepage": "https://github.com/yermolim/dots-animation#readme",
   "devDependencies": {
-    "typescript": "^3.6.4"
+    "typescript": "^3.8.3"
   },
   "dependencies": {}
 }
