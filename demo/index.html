@@ -44,28 +44,33 @@
     <script async type="module">
 
         (async function(){
+            
+            const factory = dotsAnim.DotsAnimationFactory; 
+
             let geometricConfig;
-            let snowConfig;
             const geometricConfigRes = await fetch("./anim.config-geometric.json");
             if (geometricConfigRes.ok) {
                 const text = await geometricConfigRes.text();
                 geometricConfig = JSON.parse(text);
             }
+
+            const geometricAnimation = factory.createAnimation( // create 'IAnimationObject'
+                        "#container-geometric", // selector of existing 'HTMLElement' container
+                        "canvas-geometric", // id for new 'HTMLCanvasElement' 
+                        geometricConfig); // config that implements 'IAnimationOptions' properties
+            geometricAnimation.start();
+
+
+            let snowConfig;
             const snowConfigRes = await fetch("./anim.config-snow.json");
             if (snowConfigRes.ok) {
                 const text = await snowConfigRes.text();
                 snowConfig = JSON.parse(text);
             }
-
-            const factory = dotsAnim.DotsAnimationFactory; 
-            const geometricAnimation = factory.createAnimation( // create 'IAnimationObject'
-                        "#container-geometric", // selector of existing 'HTMLElement' container
-                        "canvas-geometric", // id for new 'HTMLCanvasElement' 
-                        geometricConfig); // config that implements 'IAnimationOptions' properties
+            
             const snowAnimation = factory.createAnimation("#container-snow", "canvas-snow", snowConfig);
-
-            geometricAnimation.start();
             snowAnimation.start();
+
         })();
 
     </script>    
