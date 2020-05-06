@@ -7,6 +7,7 @@
     <br>
 </p>
 Simple module for adding to your html background container a canvas with fancy responsive dots animation.
+
 ![](demo.gif)
 
 ### Current features
