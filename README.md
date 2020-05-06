@@ -7,6 +7,7 @@
     <br>
 </p>
 Simple module for adding to your html background container a canvas with fancy responsive dots animation.
+
 ![](demo.gif)
 
 ### Current features
@@ -43,7 +44,7 @@ animationControl.start(); // 'stop' and 'pause' methods are also provided
 <script src="https://unpkg.com/dots-animation/dist/index.umd.min.js"></script>
 ```
 ```javascript
-const factory = const factory = dotsAnim.DotsAnimationFactory;
+const factory = dotsAnim.DotsAnimationFactory;
 const options = {};
 const animationControl = factory
   .createAnimation("#container-selector", "id-for-new-canvas", options);
