@@ -5,4 +5,5 @@ node_modules
 src
 tsc
 demo
+demo.gif
 debug.log
