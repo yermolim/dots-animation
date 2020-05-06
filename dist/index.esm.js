@@ -1,4 +1,4 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -7,7 +7,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-//#region  common functions
 function getDistance(x1, y1, x2, y2) {
     return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
@@ -80,11 +79,11 @@ class Dot {
         };
     }
     updatePosition() {
-        let offset = Math.max(this._offset, this._r);
-        let xMin = -1 * offset;
-        let yMin = -1 * offset;
-        let xMax = this._canvas.width + offset;
-        let yMax = this._canvas.height + offset;
+        const offset = Math.max(this._offset, this._r);
+        const xMin = -1 * offset;
+        const yMin = -1 * offset;
+        const xMax = this._canvas.width + offset;
+        const yMax = this._canvas.height + offset;
         if (this._x < xMin) {
             this._x = xMax;
         }
@@ -105,7 +104,7 @@ class Dot {
         }
     }
     updateColor() {
-        if (this._opacitySStep != 0 && this._colorSHex !== null) {
+        if (this._opacitySStep !== 0 && this._colorSHex !== null) {
             this._opacitySCurrent += this._opacitySStep;
             if (this._opacitySCurrent > this._opacitySMax) {
                 this._opacitySCurrent = this._opacitySMax;
@@ -117,7 +116,7 @@ class Dot {
             }
             this._colorS = hexToRgba(this._colorSHex, this._opacityFCurrent, 100);
         }
-        if (this._opacityFStep != 0 && this._colorFHex !== null) {
+        if (this._opacityFStep !== 0 && this._colorFHex !== null) {
             this._opacityFCurrent += this._opacityFStep;
             if (this._opacityFCurrent > this._opacityFMax) {
                 this._opacityFCurrent = this._opacityFMax;
@@ -142,9 +141,10 @@ class DotControl {
         this._maxNumber = 100;
         this._lastDpr = 0;
         this._canvas = canvas;
-        let canvasCtx = this._canvas.getContext("2d");
-        if (canvasCtx === null)
+        const canvasCtx = this._canvas.getContext("2d");
+        if (canvasCtx === null) {
             throw new Error("Canvas context is null");
+        }
         this._canvasCtx = canvasCtx;
         this._options = options;
     }
@@ -152,28 +152,21 @@ class DotControl {
         this._pauseState = pauseState;
     }
     draw(mousePosition, isClicked) {
-        // if dpr changed (window moved to other display) clear dots array
         const dpr = window.devicePixelRatio;
         if (dpr !== this._lastDpr) {
             this._array.length = 0;
         }
         this._lastDpr = dpr;
-        // update dots number
         const isNumberUpdated = this.updateDotNumber();
-        // return if paused and no resize events fired
         if (!isNumberUpdated && this._pauseState && !this.isCanvasEmpty()) {
             return;
         }
-        // clear canvas
         this._canvasCtx.clearRect(0, 0, this._canvas.width, this._canvas.height);
-        // move dots
         for (const dot of this._array) {
             dot.updatePosition();
             dot.updateColor();
         }
-        // handle mouse actions
-        var ratio = this._options.dprDependentDimensions ? dpr : 1;
-        // handle mouse move
+        const ratio = this._options.dprDependentDimensions ? dpr : 1;
         if (this._options.actionOnHover) {
             if (this._options.onHoverDrawLines) {
                 this.drawLinesToCircleCenter(mousePosition, this._options.onHoverLineRadius * ratio, this._options.lineWidth, this._options.lineColor);
@@ -182,7 +175,6 @@ class DotControl {
                 this.moveDotsOutOfCircle(mousePosition, this._options.onHoverMoveRadius * ratio);
             }
         }
-        // handle mouse click
         if (isClicked && this._options.actionOnClick) {
             if (this._options.onClickMove) {
                 this.moveDotsOutOfCircle(mousePosition, this._options.onClickMoveRadius * ratio);
@@ -191,11 +183,9 @@ class DotControl {
                 this.dotFactory(this._options.onClickCreateNDots, mousePosition);
             }
         }
-        // draw lines
         if (this._options.drawLines) {
             this.drawLinesBetweenDots();
         }
-        // draw dots
         for (const dot of this._array) {
             const params = dot.getProps();
             drawCircle(this._canvasCtx, params.x, params.y, params.r, params.colorS, params.colorF);
@@ -206,7 +196,6 @@ class DotControl {
             .getImageData(0, 0, this._canvas.width, this._canvas.height)
             .data.some(channel => channel !== 0);
     }
-    // creation actions
     dotFactory(number, position = null) {
         for (let i = 0; i < number; i++) {
             const dot = this.createRandomDot(position);
@@ -218,7 +207,6 @@ class DotControl {
     }
     createRandomDot(position) {
         let x, y;
-        // optional position arg
         if (position) {
             x = position.x;
             y = position.y;
@@ -227,32 +215,31 @@ class DotControl {
             x = getRandomInt(0, this._canvas.width);
             y = getRandomInt(0, this._canvas.height);
         }
-        // dimensions params
         const dimRatio = this._options.dprDependentDimensions ? window.devicePixelRatio : 1;
-        let offset = this._options.drawLines ? this._options.lineLength * dimRatio : 0;
+        const offset = this._options.drawLines ? this._options.lineLength * dimRatio : 0;
         const xSpeed = getRandomArbitrary(this._options.minSpeedX, this._options.maxSpeedX) * dimRatio;
         const ySpeed = getRandomArbitrary(this._options.minSpeedY, this._options.maxSpeedY) * dimRatio;
         const radius = getRandomInt(this._options.minR, this._options.maxR) * dimRatio;
-        // fill/stroke color params
         let colorS = null;
         let colorF = null;
-        if (this._options.stroke)
+        if (this._options.stroke) {
             colorS = this._options.colorsStroke[Math.floor(Math.random() *
                 this._options.colorsStroke.length)];
-        if (this._options.fill)
+        }
+        if (this._options.fill) {
             colorF = this._options.colorsFill[Math.floor(Math.random() *
                 this._options.colorsFill.length)];
-        // fill/stroke opacity params
-        let opacitySMin = this._options.opacityStrokeMin;
-        let opacitySMax = this._options.opacityStroke ?
+        }
+        const opacitySMin = this._options.opacityStrokeMin;
+        const opacitySMax = this._options.opacityStroke ?
             Math.max(opacitySMin, this._options.opacityStroke) :
             getRandomInt(opacitySMin, 100);
-        let opacitySStep = this._options.opacityStrokeStep;
-        let opacityFMin = this._options.opacityFillMin;
-        let opacityFMax = this._options.opacityFill ?
+        const opacitySStep = this._options.opacityStrokeStep;
+        const opacityFMin = this._options.opacityFillMin;
+        const opacityFMax = this._options.opacityFill ?
             Math.max(opacityFMin, this._options.opacityFill) :
             getRandomInt(opacityFMin, 100);
-        let opacityFStep = this._options.opacityFillStep;
+        const opacityFStep = this._options.opacityFillStep;
         return new Dot(this._canvas, offset, x, y, xSpeed, ySpeed, radius, colorS, colorF, opacitySMin, opacitySMax, opacitySStep, opacityFMin, opacityFMax, opacityFStep);
     }
     deleteEldestDots(number) {
@@ -359,7 +346,8 @@ class DotsAnimation {
         this.resize();
         parent.appendChild(this._canvas);
         window.addEventListener("resize", () => { this.resize(); });
-        this._animationControl = DotsAnimation.animationControlFactory(constructor, this._canvas, options);
+        this._animationControl = DotsAnimation
+            .animationControlFactory(constructor, this._canvas, options);
     }
     static animationControlFactory(constructor, canvas, options) {
         return new constructor(canvas, options);
@@ -373,14 +361,12 @@ class DotsAnimation {
         this._animationControl.draw(this._mousePosition, this._isMouseClicked);
         this._isMouseClicked = false;
     }
-    // action methods
     start() {
         this._animationControl.setPauseState(false);
         if (this._timer !== undefined) {
             return;
         }
         this._timer = window.setInterval(() => {
-            // tslint:disable-next-lineLength = this._options.dprDependentDimensions ?:no-unused-expression
             window.requestAnimationFrame(() => { this.draw(); }) ||
                 window.webkitRequestAnimationFrame(() => { this.draw(); });
         }, 1000 / this._fps);
@@ -395,11 +381,11 @@ class DotsAnimation {
         this._timer = undefined;
         const canvasCtx = this._canvas.getContext("2d");
         window.setTimeout(() => {
-            if (canvasCtx !== null)
+            if (canvasCtx !== null) {
                 canvasCtx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+            }
         }, 20);
     }
-    // event handlers
     onClick() {
         this._isMouseClicked = true;
     }
@@ -416,7 +402,7 @@ class DotsAnimation {
         this._mousePosition.y = yDpr;
     }
 }
-export class DotsAnimationFactory {
+class DotsAnimationFactory {
     static fetchOptions(optionsJsonPath) {
         return __awaiter(this, void 0, void 0, function* () {
             let options = DotsAnimationFactory._optionsDefault;
@@ -430,8 +416,9 @@ export class DotsAnimationFactory {
     }
     static createAnimation(containerSelector, canvasId, options) {
         const container = document.querySelector(containerSelector);
-        if (container === null)
+        if (container === null) {
             throw new Error("Container is null");
+        }
         return new DotsAnimation(container, canvasId, options, DotControl);
     }
 }
@@ -473,3 +460,5 @@ DotsAnimationFactory._optionsDefault = {
     onHoverMoveRadius: 50,
     onHoverLineRadius: 150
 };
+
+export { DotsAnimationFactory };

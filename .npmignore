@@ -1,0 +1,8 @@
+.*
+**/tsconfig.json
+**/rollup.config.js
+node_modules
+src
+tsc
+demo
+debug.log
