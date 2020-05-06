@@ -41,27 +41,33 @@
     <div id="container-snow" class="animation-container right"></div>
     
     <script src="index.umd.min.js"></script>
-    <script type="module">
-        const factory = dotsAnim.DotsAnimationFactory;
+    <script async type="module">
 
-        // fetch options using path to configuration json
-        factory.fetchOptions("./anim.config-geometric.json")
-            .then((geometricOptions) => {
-                factory.createAnimation( // create IAnimationObject
-                    "#container-geometric", // selector of existing HTMLElement (container for canvas)
-                    "canvas-geometric", // id for new HTMLCanvasElement 
-                    geometricOptions
-                ).start();
-            });
+        (async function(){
+            let geometricConfig;
+            let snowConfig;
+            const geometricConfigRes = await fetch("./anim.config-geometric.json");
+            if (geometricConfigRes.ok) {
+                const text = await geometricConfigRes.text();
+                geometricConfig = JSON.parse(text);
+            }
+            const snowConfigRes = await fetch("./anim.config-snow.json");
+            if (snowConfigRes.ok) {
+                const text = await snowConfigRes.text();
+                snowConfig = JSON.parse(text);
+            }
 
-        factory.fetchOptions("./anim.config-snow.json")
-            .then((snowOptions) => {
-                factory.createAnimation(
-                    "#container-snow", 
-                    "canvas-snow", 
-                    snowOptions            
-                ).start();
-            });
+            const factory = dotsAnim.DotsAnimationFactory; 
+            const geometricAnimation = factory.createAnimation( // create 'IAnimationObject'
+                        "#container-geometric", // selector of existing 'HTMLElement' container
+                        "canvas-geometric", // id for new 'HTMLCanvasElement' 
+                        geometricConfig); // config that implements 'IAnimationOptions' properties
+            const snowAnimation = factory.createAnimation("#container-snow", "canvas-snow", snowConfig);
+
+            geometricAnimation.start();
+            snowAnimation.start();
+        })();
+
     </script>    
 </body>
 </html>

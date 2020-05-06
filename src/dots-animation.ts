@@ -1,70 +1,8 @@
-// #region  common functions
-function getDistance(x1: number, y1: number, x2: number, y2: number): number {
-  return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-}
-
-function getRandomInt(min: number, max: number): number {
-  return Math.round(Math.random() * (max - min)) + min;
-}
-
-function getRandomArbitrary(min: number, max: number): number {
-  return Math.random() * (max - min) + min;
-}
-
-function hexToRgba(hex: string, opacity: number, denominator = 1): string {
-  hex = hex.replace("#", "");
-  const r = parseInt(hex.substring(0, hex.length / 3), 16);
-  const g = parseInt(hex.substring(hex.length / 3, 2 * hex.length / 3), 16);
-  const b = parseInt(hex.substring(2 * hex.length / 3, 3 * hex.length / 3), 16);
-  return "rgba(" + r + "," + g + "," + b + "," + opacity / denominator + ")";
-}
-
-function drawCircle(ctx: CanvasRenderingContext2D,
-  x: number, y: number, r: number, colorS: string | null, colorF: string | null): void {
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2, true);
-  if (colorF !== null) {
-    ctx.fillStyle = colorF;
-    ctx.fill();
-  }
-  if (colorS !== null) {
-    ctx.strokeStyle = colorS;
-    ctx.stroke();
-  }
-}
-
-function drawLine(ctx: CanvasRenderingContext2D,
-  x1: number, y1: number, x2: number, y2: number, width: number, color: string) {
-  ctx.lineWidth = width;
-  ctx.strokeStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
-  ctx.lineTo(x2, y2);
-  ctx.stroke();
-}
-// #endregion
-
-
-export interface IAnimationObject {
-  start(): void;
-  stop(): void;
-  pause(): void;
-}
-
-interface IPositionObject {
-  x: number;
-  y: number;
-}
-
-type IAnimationControlFactory = 
-    new(canvas: HTMLCanvasElement, options: IAnimationOptions) => IAnimationControl;
-
-interface IAnimationControl {
-  setPauseState(pauseState: boolean): void;
-  draw(mousePosition?: IPositionObject, isMouseClicked?: boolean): void;
-}
-
-
+import { defaultOptions } from "./options";
+import { hexToRgba, getRandomInt, getRandomArbitrary, 
+  getDistance, drawCircle, drawLine } from "./common";
+import { IPositionObject, IAnimationControl, IAnimationControlFactory, 
+  IAnimationObject, IAnimationOptions } from "./interfaces";
 
 interface IDotProps {
   x: number;
@@ -520,110 +458,19 @@ class DotsAnimation implements IAnimationObject {
     this._mousePosition.y = yDpr;
   }
 }
-
-export interface IAnimationOptions {
-  expectedFps: number; // positive integer 
-
-  number: number | null; // null(then "density" field is used) or fixed number. strongly affects performance
-  density: number; // positive number. strongly affects performance
-
-  dprDependentDensity: boolean;
-  dprDependentDimensions: boolean;
-
-  minR: number; // positive number
-  maxR: number; // positive number
-  minSpeedX: number;
-  maxSpeedX: number;
-  minSpeedY: number;
-  maxSpeedY: number;
-
-  blur: number; // 0 or positive integer
-
-  stroke: boolean;
-  colorsStroke: string[]; // color array to pick from
-  opacityStroke: number | null; // null or fixed from 0 to 100
-  opacityStrokeMin: number; // number from 0 to 100
-  opacityStrokeStep: number; // number from 0 to 100
-
-  fill: boolean;
-  colorsFill: string[]; // color array to pick from
-  opacityFill: number | null; // null or fixed from 0 to 100
-  opacityFillMin: number; // number from 0 to 100
-  opacityFillStep: number; // number from 0 to 100
-
-  drawLines: boolean;
-  lineColor: string;
-  lineLength: number;
-  lineWidth: number;
-
-  actionOnClick: boolean;
-  actionOnHover: boolean;
-  onClickCreate: boolean;
-  onClickMove: boolean;
-  onHoverMove: boolean;
-  onHoverDrawLines: boolean;
-  onClickCreateNDots: number; // positive integer
-  onClickMoveRadius: number; // positive integer
-  onHoverMoveRadius: number; // positive integer
-  onHoverLineRadius: number; // positive integer
-}
-
-export class DotsAnimationFactory {
-  private static _optionsDefault: IAnimationOptions = {
-    expectedFps: 60,
-    number: null,
-    density: 0.00005,
-    dprDependentDensity: true,
-    dprDependentDimensions: true,
-    minR: 1,
-    maxR: 5,
-    minSpeedX: -0.5,
-    maxSpeedX: 0.5,
-    minSpeedY: -0.5,
-    maxSpeedY: 0.5,
-    blur: 0,
-    fill: true,
-    colorsFill: ["#ffffff", "#fff4c1", "#faefdb"],
-    opacityFill: null,
-    opacityFillMin: 0,
-    opacityFillStep: 0,
-    stroke: false,
-    colorsStroke: ["#ffffff"],
-    opacityStroke: 1,
-    opacityStrokeMin: 0,
-    opacityStrokeStep: 0,
-    drawLines: true,
-    lineColor: "#717892",
-    lineLength: 150,
-    lineWidth: 1,
-    actionOnClick: true,
-    actionOnHover: true,
-    onClickCreate: true,
-    onClickMove: true,
-    onHoverMove: true,
-    onHoverDrawLines: true,
-    onClickCreateNDots: 10,
-    onClickMoveRadius: 200,
-    onHoverMoveRadius: 50,
-    onHoverLineRadius: 150
-  };
-
-  static async fetchOptions(optionsJsonPath: string): Promise<IAnimationOptions>
-  {
-    let options: IAnimationOptions = DotsAnimationFactory._optionsDefault;
-    const response = await fetch(optionsJsonPath);
-    if (response.ok) {
-      const text = await response.text();
-      options = JSON.parse(text);
+class DotsAnimationFactory {
+  static createAnimation(containerSelector: string, canvasId: string, options: IAnimationOptions = null): IAnimationObject {
+    const finalOptions = Object.assign({}, defaultOptions);
+    if (options) {
+      Object.assign(finalOptions, options);
     }
-    return Promise.resolve(options);
-  }
 
-  static createAnimation(containerSelector: string, canvasId: string, options: IAnimationOptions ): IAnimationObject {
     const container = document.querySelector(containerSelector);
     if (container === null) { 
       throw new Error("Container is null");
     }
-    return new DotsAnimation(container as HTMLElement, canvasId, options, DotControl);
+    return new DotsAnimation(container as HTMLElement, canvasId, finalOptions, DotControl);
   }
 }
+
+export { IAnimationOptions, IAnimationControl, DotsAnimationFactory };

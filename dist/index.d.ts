@@ -5,6 +5,10 @@ export interface IAnimationObject {
 	stop(): void;
 	pause(): void;
 }
+export interface IAnimationControl {
+	setPauseState(pauseState: boolean): void;
+	draw(mousePosition?: IPositionObject, isMouseClicked?: boolean): void;
+}
 export interface IAnimationOptions {
 	expectedFps: number;
 	number: number | null;
@@ -43,10 +47,12 @@ export interface IAnimationOptions {
 	onHoverMoveRadius: number;
 	onHoverLineRadius: number;
 }
+export interface IPositionObject {
+	x: number;
+	y: number;
+}
 export declare class DotsAnimationFactory {
-	private static _optionsDefault;
-	static fetchOptions(optionsJsonPath: string): Promise<IAnimationOptions>;
-	static createAnimation(containerSelector: string, canvasId: string, options: IAnimationOptions): IAnimationObject;
+	static createAnimation(containerSelector: string, canvasId: string, options?: IAnimationOptions): IAnimationObject;
 }
 
 export {};

@@ -1,12 +1,42 @@
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
+const defaultOptions = {
+    expectedFps: 60,
+    number: null,
+    density: 0.00005,
+    dprDependentDensity: true,
+    dprDependentDimensions: true,
+    minR: 1,
+    maxR: 5,
+    minSpeedX: -0.5,
+    maxSpeedX: 0.5,
+    minSpeedY: -0.5,
+    maxSpeedY: 0.5,
+    blur: 0,
+    fill: true,
+    colorsFill: ["#ffffff", "#fff4c1", "#faefdb"],
+    opacityFill: null,
+    opacityFillMin: 0,
+    opacityFillStep: 0,
+    stroke: false,
+    colorsStroke: ["#ffffff"],
+    opacityStroke: 1,
+    opacityStrokeMin: 0,
+    opacityStrokeStep: 0,
+    drawLines: true,
+    lineColor: "#717892",
+    lineLength: 150,
+    lineWidth: 1,
+    actionOnClick: true,
+    actionOnHover: true,
+    onClickCreate: true,
+    onClickMove: true,
+    onHoverMove: true,
+    onHoverDrawLines: true,
+    onClickCreateNDots: 10,
+    onClickMoveRadius: 200,
+    onHoverMoveRadius: 50,
+    onHoverLineRadius: 150
 };
+
 function getDistance(x1, y1, x2, y2) {
     return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
@@ -43,6 +73,7 @@ function drawLine(ctx, x1, y1, x2, y2, width, color) {
     ctx.lineTo(x2, y2);
     ctx.stroke();
 }
+
 class Dot {
     constructor(_canvas, _offset, _x, _y, _xSpeed, _ySpeed, _r, _colorSHex, _colorFHex, _opacitySMin, _opacitySMax, _opacitySStep, _opacityFMin, _opacityFMax, _opacityFStep) {
         this._canvas = _canvas;
@@ -403,62 +434,17 @@ class DotsAnimation {
     }
 }
 class DotsAnimationFactory {
-    static fetchOptions(optionsJsonPath) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let options = DotsAnimationFactory._optionsDefault;
-            const response = yield fetch(optionsJsonPath);
-            if (response.ok) {
-                const text = yield response.text();
-                options = JSON.parse(text);
-            }
-            return Promise.resolve(options);
-        });
-    }
-    static createAnimation(containerSelector, canvasId, options) {
+    static createAnimation(containerSelector, canvasId, options = null) {
+        const finalOptions = Object.assign({}, defaultOptions);
+        if (options) {
+            Object.assign(finalOptions, options);
+        }
         const container = document.querySelector(containerSelector);
         if (container === null) {
             throw new Error("Container is null");
         }
-        return new DotsAnimation(container, canvasId, options, DotControl);
+        return new DotsAnimation(container, canvasId, finalOptions, DotControl);
     }
 }
-DotsAnimationFactory._optionsDefault = {
-    expectedFps: 60,
-    number: null,
-    density: 0.00005,
-    dprDependentDensity: true,
-    dprDependentDimensions: true,
-    minR: 1,
-    maxR: 5,
-    minSpeedX: -0.5,
-    maxSpeedX: 0.5,
-    minSpeedY: -0.5,
-    maxSpeedY: 0.5,
-    blur: 0,
-    fill: true,
-    colorsFill: ["#ffffff", "#fff4c1", "#faefdb"],
-    opacityFill: null,
-    opacityFillMin: 0,
-    opacityFillStep: 0,
-    stroke: false,
-    colorsStroke: ["#ffffff"],
-    opacityStroke: 1,
-    opacityStrokeMin: 0,
-    opacityStrokeStep: 0,
-    drawLines: true,
-    lineColor: "#717892",
-    lineLength: 150,
-    lineWidth: 1,
-    actionOnClick: true,
-    actionOnHover: true,
-    onClickCreate: true,
-    onClickMove: true,
-    onHoverMove: true,
-    onHoverDrawLines: true,
-    onClickCreateNDots: 10,
-    onClickMoveRadius: 200,
-    onHoverMoveRadius: 50,
-    onHoverLineRadius: 150
-};
 
 export { DotsAnimationFactory };
