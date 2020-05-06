@@ -57,7 +57,7 @@
             const geometricAnimation = factory.createAnimation( // create 'IAnimationObject'
                         "#container-geometric", // selector of existing 'HTMLElement' container
                         "canvas-geometric", // id for new 'HTMLCanvasElement' 
-                        geometricConfig); // config that implements 'IAnimationOptions' properties
+                        {}); // config that implements 'IAnimationOptions' properties
             geometricAnimation.start();
 
 
@@ -67,7 +67,7 @@
                 const text = await snowConfigRes.text();
                 snowConfig = JSON.parse(text);
             }
-            
+
             const snowAnimation = factory.createAnimation("#container-snow", "canvas-snow", snowConfig);
             snowAnimation.start();
 

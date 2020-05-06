@@ -68,14 +68,14 @@ you can override default options by passing object with properties available in 
   // if number option is not null, density option will be ignored
   number: null, // null or positive integer, affects performance
   // density option defines maximum number of dots per canvas pixel
-  density: 0.00010, // positive number, affects performance
+  density: 0.00005, // positive number, affects performance
 
   "dprDependentDensity": true, // use dpr in density calculation  
   "drpDependentDimensions": true, // use dpr in size and speed calculations
 
   // dots radius is random value between minR and MaxR
   minR: 1, // only positive values, it's desirable to use integers only for faster calculations
-  maxR: 3, // only positive values, it's desirable to use integers only for faster calculations
+  maxR: 6, // only positive values, it's desirable to use integers only for faster calculations
   
   // horizontal dots speed is random value between minSpeedX and minSpeedX  
   // vertical dots speed is random value between minSpeedY and minSpeedY
@@ -87,25 +87,25 @@ you can override default options by passing object with properties available in 
   blur: 1, // blur intensity in px, 0 - disabled
 
   fill: true, // fill dots with color
-  colorsFill: ["#FFC652", "#FFB652", "#FF9652"], // hex color strings array, color is picked randomly from color array
+  colorsFill: ["#ffffff", "#fff4c1", "#faefdb"], // hex color strings array, color is picked randomly from color array
   opacityFill: null, // null for random opacity | from 0 to 100 where 0 means transparent
   opacityFillMin: 0, // from 0 to 100 where 0 means transparent
   opacityFillStep: 0, // from 0 to 100 where 0 means no opacity changes per frame, for creating blinking effect
 
   stroke: false, // circle dots with color
-  colorsStroke: ["#FFC652", "#FFB652", "#FF9652"], // hex color strings array, color is picked randomly from color array
-  opacityStroke: 10, // null for random opacity | from 0 to 100 where 0 means transparent
+  colorsStroke: ["#ffffff"], // hex color strings array, color is picked randomly from color array
+  opacityStroke: 1, // null for random opacity | from 0 to 100 where 0 means transparent
   opacityStrokeMin: 0, // from 0 to 100 where 0 means transparent
   opacityStrokeStep: 0, // from 0 to 100 where 0 means no opacity changes per frame, for creating blinking effect
   
   drawLines: true, // enable drawing lines between adjacent dots, most performance decreasing feature
-  lineColor: "#6566A7", // hex color string
-  lineLength: 200, // positive integer, maximum length of lines drawn between dots
-  lineWidth: 3, // positive integer
+  lineColor: "#717892", // hex color string
+  lineLength: 150, // positive integer, maximum length of lines drawn between dots
+  lineWidth: 2, // positive integer
   
-  actionOnClick: false, // enable actions on mouse click
+  actionOnClick: true, // enable actions on mouse click
   actionOnHover: true, // enable actions on mouse move
-  onClickCreate: true, // enable creating new dots in current mouse cursor position on click
+  onClickCreate: false, // enable creating new dots in current mouse cursor position on click
   onClickMove: true, // enable moving adjacent dots away from mouse cursor on click
   onHoverMove: true, // enable moving adjacent dots away from mouse cursor on hover
   onHoverDrawLines: true, // enable drawing lines between mouse cursor and adjacent dots
