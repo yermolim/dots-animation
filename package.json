@@ -4,6 +4,7 @@
   "description": "simple module for filling your html container with fancy responsive dots animation",
   "main": "dist/index.umd.min.js",
   "module": "dist/index.esm.min.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "buildts": "tsc",
     "buildru": "rollup -c",
