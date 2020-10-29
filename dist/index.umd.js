@@ -379,7 +379,7 @@
             this._canvas.style.width = "100%";
             this._canvas.style.width = "100%";
             this._canvas.style.height = "100%";
-            this._canvas.style.webkitFilter = `blur(${options.blur}px)`;
+            this._canvas.style.filter = `blur(${options.blur}px)`;
             this.resize();
             parent.appendChild(this._canvas);
             window.addEventListener("resize", () => { this.resize(); });
