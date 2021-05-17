@@ -51,7 +51,7 @@ const animationControl = factory
 animationControl.start();
 ```
 
-#### ⚠️for chart to function properly its container element must have relative, absolute or fixed position!
+#### ⚠️for animation to function properly its container element must have relative, absolute or fixed position!
 
 # Set your options
 you can override default options by passing object with properties available in 'IAnimationOptions' interface
